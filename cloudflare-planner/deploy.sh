@@ -50,7 +50,8 @@ check_prerequisites() {
 build_planner() {
     echo -e "\n${YELLOW}Building react-planner demo...${NC}"
 
-    cd ..
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cd "$SCRIPT_DIR/.."
     if [ ! -f "package.json" ]; then
         echo -e "${RED}Error: Not in react-planner directory${NC}"
         exit 1
