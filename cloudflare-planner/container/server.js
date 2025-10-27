@@ -50,7 +50,7 @@ async function initBrowser() {
   });
 
   // Wait a bit more for full initialization
-  await page.waitForTimeout(2000);
+  await page.waitForFunction(() => window.__PLANNER_API__, { timeout: 5000 });
 
   // Inject store exposer script
   const fs = require('fs');
