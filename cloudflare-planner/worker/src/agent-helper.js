@@ -60,11 +60,17 @@ Please translate this request into a planner command.`;
       if (jsonMatch) {
         parsed = JSON.parse(jsonMatch[0]);
       } else {
-        throw new Error('No JSON found in AI response');
+        // No JSON found - log for debugging and fall back
+        console.warn('AI response did not contain valid JSON');
+        console.warn('AI Response:', response.response.substring(0, 200));
+        console.warn('Falling back to rule-based parsing...');
+        parsed = fallbackParsing(prompt);
       }
     } catch (parseError) {
-      // Fallback: try to interpret the response
-      console.warn('Failed to parse AI response as JSON:', parseError);
+      // JSON parsing failed - log for debugging and fall back
+      console.warn('Failed to parse JSON from AI response:', parseError.message);
+      console.warn('Attempted to parse:', response.response.substring(0, 200));
+      console.warn('Falling back to rule-based parsing...');
       parsed = fallbackParsing(prompt);
     }
 

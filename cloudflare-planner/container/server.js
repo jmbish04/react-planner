@@ -31,24 +31,17 @@ const VALID_ITEM_TYPES = [
 
 // Authentication middleware for sensitive endpoints
 function requireAuth(req, res, next) {
-  const authHeader = req.headers['authorization'];
   const apiKey = process.env.API_KEY;
 
-  // If no API_KEY is set in environment, allow requests (for development)
-  // In production, API_KEY MUST be set
+  // If no API_KEY is set, allow requests (development mode only)
+  // Production mode enforces API_KEY at server startup
   if (!apiKey) {
-    if (process.env.NODE_ENV === 'production') {
-      console.error('CRITICAL: API_KEY not set in production environment!');
-      return res.status(500).json({
-        success: false,
-        error: 'Server configuration error'
-      });
-    }
     console.warn('Warning: No API_KEY set. Authentication bypassed for development.');
     return next();
   }
 
   // Validate Bearer token
+  const authHeader = req.headers['authorization'];
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({
       success: false,
@@ -142,15 +135,34 @@ async function initBrowser() {
   await page.evaluate(storeExposerScript);
 
   // Verify store is accessible
-  const storeAccessible = await page.evaluate(() => {
-    return typeof window.__REDUX_STORE__ !== 'undefined' ||
-           typeof window.__PLANNER_API__ !== 'undefined';
+  const storeCheck = await page.evaluate(() => {
+    const hasReduxStore = typeof window.__REDUX_STORE__ !== 'undefined';
+    const hasPlannerAPI = typeof window.__PLANNER_API__ !== 'undefined';
+    const windowKeys = Object.keys(window).filter(k => k.includes('REDUX') || k.includes('PLANNER'));
+
+    return {
+      hasReduxStore,
+      hasPlannerAPI,
+      windowKeys,
+      accessible: hasReduxStore || hasPlannerAPI
+    };
   });
 
-    if (!storeAccessible) {
-      throw new Error('Redux store may not be accessible. See renderer-patch.js for instructions.');
-    } else {
-    console.log('Redux store successfully exposed');
+  if (!storeCheck.accessible) {
+    console.error('ERROR: Redux store is not accessible!');
+    console.error('Available window keys:', storeCheck.windowKeys);
+    console.error('');
+    console.error('To fix this issue:');
+    console.error('1. Apply the patch from container/renderer-patch.js to demo/src/renderer.jsx');
+    console.error('2. Rebuild: npm run build-demo');
+    console.error('3. Rebuild Docker container');
+    console.error('');
+    console.error('See README.md "Troubleshooting > Redux Store Not Accessible" for details.');
+    throw new Error('Redux store not accessible. Cannot control planner without exposed store.');
+  } else {
+    console.log('✓ Redux store successfully exposed');
+    if (storeCheck.hasReduxStore) console.log('  - window.__REDUX_STORE__ found');
+    if (storeCheck.hasPlannerAPI) console.log('  - window.__PLANNER_API__ found');
   }
 
   console.log('Browser initialized and planner loaded');
@@ -367,11 +379,24 @@ process.on('SIGTERM', async () => {
 // Start server
 const PORT = process.env.PORT || 8080;
 
+// CRITICAL: Enforce API_KEY in production before starting server
+if (process.env.NODE_ENV === 'production' && !process.env.API_KEY) {
+  console.error('CRITICAL: API_KEY environment variable must be set in production!');
+  console.error('The server will not start without proper authentication configured.');
+  console.error('Set API_KEY in your environment or use NODE_ENV=development for testing.');
+  process.exit(1);
+}
+
 initBrowser()
   .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Container server running on port ${PORT}`);
       console.log('Ready to accept commands');
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Running in PRODUCTION mode with authentication enabled');
+      } else {
+        console.warn('Running in DEVELOPMENT mode - authentication is BYPASSED');
+      }
     });
   })
   .catch(error => {

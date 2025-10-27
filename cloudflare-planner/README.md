@@ -505,10 +505,10 @@ docker logs <container-id>
 
 **Symptom:** Container returns "Redux store not accessible" error
 
-**Solution:** Ensure the Redux store is exposed in the planner:
-1. Apply the patch from `container/renderer-patch.js`
-2. Rebuild with `npm run build-demo`
-3. Rebuild and redeploy container
+**Solution:**
+1. Apply `container/renderer-patch.js` to `demo/src/renderer.jsx`
+2. Rebuild the demo: `npm run build-demo`
+3. Redeploy the container
 
 ### Container Fails to Start
 
