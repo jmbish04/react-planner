@@ -29,6 +29,28 @@ function handleOptions() {
 }
 
 /**
+ * Verify API key from request headers
+ */
+function verifyAuth(request, env) {
+  const apiKey = env.WORKER_API_KEY;
+
+  // If no WORKER_API_KEY is set, allow requests (development mode only)
+  if (!apiKey) {
+    console.warn('Warning: No WORKER_API_KEY set. Authentication bypassed for development.');
+    return true;
+  }
+
+  // Validate Bearer token
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+
+  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+  return token === apiKey;
+}
+
+/**
  * Get or create a session Durable Object
  */
 function getSession(env, sessionId) {
@@ -51,13 +73,21 @@ export default {
     const path = url.pathname;
 
     try {
-      // Health check
+      // Health check (public endpoint)
       if (path === '/health' || path === '/') {
         return Response.json({
           status: 'healthy',
           service: 'react-planner-agent-gateway',
           timestamp: Date.now()
         }, { headers: CORS_HEADERS });
+      }
+
+      // Verify authentication for all protected endpoints
+      if (!verifyAuth(request, env)) {
+        return Response.json(
+          { error: 'Unauthorized. Use Authorization: Bearer <api-key>' },
+          { status: 401, headers: CORS_HEADERS }
+        );
       }
 
       // Session-based endpoints
