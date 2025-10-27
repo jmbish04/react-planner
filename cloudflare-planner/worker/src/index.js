@@ -29,9 +29,9 @@ function handleOptions() {
 }
 
 /**
- * Verify API key from request headers
+ * Verify authentication using constant-time comparison to prevent timing attacks
  */
-function verifyAuth(request, env) {
+async function verifyAuth(request, env) {
   const apiKey = env.WORKER_API_KEY;
 
   // If no WORKER_API_KEY is set, allow requests (development mode only)
@@ -47,7 +47,36 @@ function verifyAuth(request, env) {
   }
 
   const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-  return token === apiKey;
+
+  // To prevent timing attacks, we hash both the provided token and the stored API key,
+  // and then compare the hashes in a constant-time manner.
+  try {
+    const encoder = new TextEncoder();
+    const tokenData = encoder.encode(token);
+    const keyData = encoder.encode(apiKey);
+
+    const [tokenHashBuffer, keyHashBuffer] = await Promise.all([
+      crypto.subtle.digest('SHA-256', tokenData),
+      crypto.subtle.digest('SHA-256', keyData)
+    ]);
+
+    const tokenHash = new Uint8Array(tokenHashBuffer);
+    const keyHash = new Uint8Array(keyHashBuffer);
+
+    if (tokenHash.length !== keyHash.length) {
+      // This should not happen with a consistent hash algorithm but is a good safeguard.
+      return false;
+    }
+
+    let mismatch = 0;
+    for (let i = 0; i < tokenHash.length; i++) {
+      mismatch |= tokenHash[i] ^ keyHash[i];
+    }
+    return mismatch === 0;
+  } catch (e) {
+    console.error('Error during auth verification:', e);
+    return false;
+  }
 }
 
 /**
@@ -83,9 +112,9 @@ export default {
       }
 
       // Verify authentication for all protected endpoints
-      if (!verifyAuth(request, env)) {
+      if (!(await verifyAuth(request, env))) {
         return Response.json(
-          { error: 'Unauthorized. Use Authorization: Bearer <api-key>' },
+          { error: 'Unauthorized. Use: Authorization: Bearer <api-key>' },
           { status: 401, headers: CORS_HEADERS }
         );
       }
