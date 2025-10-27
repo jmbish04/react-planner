@@ -67,9 +67,9 @@ async function initBrowser() {
            typeof window.__PLANNER_API__ !== 'undefined';
   });
 
-  if (!storeAccessible) {
-    console.warn('Warning: Redux store may not be accessible. See renderer-patch.js for instructions.');
-  } else {
+    if (!storeAccessible) {
+      throw new Error('Redux store may not be accessible. See renderer-patch.js for instructions.');
+    } else {
     console.log('Redux store successfully exposed');
   }
 
