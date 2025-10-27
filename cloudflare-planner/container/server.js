@@ -6,6 +6,7 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 app.use(express.json());
@@ -13,6 +14,85 @@ app.use(express.json());
 let browser = null;
 let page = null;
 let isReady = false;
+
+// Valid item types from the react-planner catalog
+const VALID_ITEM_TYPES = [
+  'sofa', 'chair', 'table', 'desk', 'bed', 'bookcase', 'wardrobe', 'fridge',
+  'sink', 'tv', 'kitchen', 'balcony', 'column', 'column-square', 'cube',
+  'armchairs', 'bench', 'blackboard', 'camera', 'canteen-table', 'canteencart',
+  'chairdesk', 'child-chair-desk', 'cleaningcart', 'coat-hook', 'deskdouble',
+  'deskoffice', 'electrical-panel', 'fire-extinguisher', 'hanger', 'hiroos',
+  'hub', 'image', 'lim', 'metal-detector', 'monitor-pc', 'naspo', 'projector',
+  'radiator-modern-style', 'radiator-old-style', 'recycling-bins', 'router-wifi',
+  'schneider', 'school-desk-double', 'school-desk', 'simple-stair', 'smoke-detector',
+  'teaching-post', 'text-3d', 'three-phase-panel', 'trash', 'umbrella-stand',
+  'air-conditioner'
+];
+
+// Authentication middleware for sensitive endpoints
+function requireAuth(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const apiKey = process.env.API_KEY;
+
+  // If no API_KEY is set in environment, allow requests (for development)
+  // In production, API_KEY MUST be set
+  if (!apiKey) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('CRITICAL: API_KEY not set in production environment!');
+      return res.status(500).json({
+        success: false,
+        error: 'Server configuration error'
+      });
+    }
+    console.warn('Warning: No API_KEY set. Authentication bypassed for development.');
+    return next();
+  }
+
+  // Validate Bearer token
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      error: 'Missing or invalid authorization header. Use: Authorization: Bearer <api-key>'
+    });
+  }
+
+  const token = authHeader.substring(7);
+
+  // Constant-time comparison to prevent timing attacks
+  const providedHash = crypto.createHash('sha256').update(token).digest('hex');
+  const validHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+
+  if (providedHash !== validHash) {
+    return res.status(403).json({
+      success: false,
+      error: 'Invalid API key'
+    });
+  }
+
+  next();
+}
+
+// Validation helper for item types
+function validateItemType(itemType) {
+  if (!itemType) {
+    return { valid: false, error: 'itemType is required' };
+  }
+
+  if (typeof itemType !== 'string') {
+    return { valid: false, error: 'itemType must be a string' };
+  }
+
+  const normalizedType = itemType.toLowerCase().trim();
+
+  if (!VALID_ITEM_TYPES.includes(normalizedType)) {
+    return {
+      valid: false,
+      error: `Invalid itemType: "${itemType}". Must be one of: ${VALID_ITEM_TYPES.join(', ')}`
+    };
+  }
+
+  return { valid: true, normalizedType };
+}
 
 // Initialize headless browser with react-planner
 async function initBrowser() {
@@ -173,8 +253,8 @@ app.post('/action', async (req, res) => {
   }
 });
 
-// Execute custom script
-app.post('/execute', async (req, res) => {
+// Execute custom script (PROTECTED - requires authentication)
+app.post('/execute', requireAuth, async (req, res) => {
   try {
     const { script } = req.body;
 
@@ -216,10 +296,22 @@ app.post('/command', async (req, res) => {
 
     switch (command) {
       case 'ADD_ITEM':
+        // Validate item type against catalog
+        const itemType = params.itemType || params.type;
+        const validation = validateItemType(itemType);
+
+        if (!validation.valid) {
+          return res.status(400).json({
+            success: false,
+            error: validation.error,
+            availableTypes: VALID_ITEM_TYPES
+          });
+        }
+
         action = {
           type: 'SELECT_TOOL_DRAWING_ITEM',
           sceneComponentType: 'items',
-          itemType: params.itemType || params.type
+          itemType: validation.normalizedType
         };
         // Note: This is a two-step process - first select the tool, then add the item
         // The actual placement would require more complex interaction

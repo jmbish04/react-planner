@@ -149,8 +149,14 @@ npm install
 # Build Docker image
 docker build -t react-planner-container .
 
-# Test locally
+# Test locally (development mode - no auth required)
 docker run -p 8080:8080 react-planner-container
+
+# Test locally with authentication (production mode)
+docker run -p 8080:8080 \
+  -e NODE_ENV=production \
+  -e API_KEY=your-secret-api-key \
+  react-planner-container
 
 # In another terminal, test the API:
 curl http://localhost:8080/health
@@ -532,6 +538,76 @@ docker logs <container-id>
 - Batch multiple commands together
 - Increase sleep timeout for containers
 
+## Security
+
+### Container Authentication
+
+The container server includes built-in API key authentication for sensitive endpoints.
+
+**Protected Endpoints:**
+- `/execute` - Arbitrary JavaScript execution (requires authentication)
+
+**Public Endpoints:**
+- `/health` - Health check
+- `/state` - Get current state
+- `/action` - Dispatch Redux actions
+- `/command` - High-level commands
+- `/screenshot` - Capture screenshots
+
+**Configuration:**
+
+1. **Development Mode** (default):
+   - No API_KEY required
+   - Authentication bypassed with warning
+   - Use for local testing only
+
+2. **Production Mode**:
+   - Set `NODE_ENV=production`
+   - Set `API_KEY` environment variable
+   - All requests to protected endpoints require `Authorization: Bearer <api-key>` header
+
+**Example with Authentication:**
+```bash
+# Set API key in container environment
+export API_KEY="your-secure-random-api-key-here"
+
+# Make authenticated request
+curl -X POST http://localhost:8080/execute \
+  -H "Authorization: Bearer your-secure-random-api-key-here" \
+  -H "Content-Type: application/json" \
+  -d '{"script": "return window.__PLANNER_API__.getState();"}'
+```
+
+**Security Features:**
+- Constant-time string comparison prevents timing attacks
+- SHA-256 hashing for token validation
+- Clear error messages for debugging
+- Production enforcement of API_KEY
+
+### Input Validation
+
+**Item Type Validation:**
+
+The `ADD_ITEM` command validates item types against the catalog:
+
+```javascript
+// Valid item types
+const VALID_ITEM_TYPES = [
+  'sofa', 'chair', 'table', 'desk', 'bed', 'bookcase', 'wardrobe', 'fridge',
+  'sink', 'tv', 'kitchen', 'balcony', 'column', 'column-square', 'cube',
+  // ... and more
+];
+```
+
+Invalid item types return a 400 error with available options:
+```json
+{
+  "success": false,
+  "error": "Invalid itemType: \"invalid\". Must be one of: sofa, chair, table, ...",
+  "availableTypes": ["sofa", "chair", "table", ...]
+}
+```
+
 ## Production Considerations
 
 ### Performance
@@ -548,13 +624,16 @@ docker logs <container-id>
 - Queue-based processing prevents overload
 - R2 provides unlimited plan storage
 
-### Security
+### Security Best Practices
 
-- Implement authentication/authorization
+- **Always set API_KEY in production** for container authentication
+- Implement additional authentication/authorization in the Worker layer
 - Rate limiting per user
 - Validate all commands before execution
 - Sanitize natural language inputs
 - Use Cloudflare Access for admin endpoints
+- Rotate API keys regularly
+- Use secrets management (Cloudflare Secrets, environment variables)
 
 ### Cost Optimization
 

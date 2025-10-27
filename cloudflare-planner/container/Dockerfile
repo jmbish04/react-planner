@@ -39,6 +39,7 @@ COPY container/package*.json ./
 RUN npm ci --only=production
 
 COPY container/server.js ./
+COPY container/store-exposer.js ./
 
 # Expose port for command server
 EXPOSE 8080
