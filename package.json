@@ -19,7 +19,7 @@
     "version": "npm run update-version-file && npm run build && npm run add-build-to-vcs",
     "postpublish": "npm run website-update",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "npm run clean && npm run build-demo && npm run build-commonjs && npm run build-es && cd cloudflare-planner/worker && npm install && npm run deploy",
+"deploy": "npm run build && npm run website-update && cd cloudflare-planner/worker && npm install && npm run deploy",
     "deploy:worker": "cd cloudflare-planner/worker && npm run deploy",
     "deploy:all": "npm run deploy && npm run deploy:worker"
   },
