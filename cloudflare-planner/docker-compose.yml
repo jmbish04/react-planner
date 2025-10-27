@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  react-planner-container:
+    build:
+      context: ../
+      dockerfile: cloudflare-planner/container/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - LOG_LEVEL=debug
+      # Uncomment for production with authentication:
+      # - NODE_ENV=production
+      # - WORKER_API_KEY=your-secure-api-key-here
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    volumes:
+      # Mount for development (optional - comment out for production)
+      - ./container/server.js:/app/server.js
+      - ./container/store-exposer.js:/app/store-exposer.js

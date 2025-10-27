@@ -1,0 +1,60 @@
+name = "react-planner-agent-gateway"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Workers AI binding for natural language processing
+[ai]
+binding = "AI"
+
+# Durable Object for session management
+[[durable_objects.bindings]]
+name = "PLANNER_SESSION"
+class_name = "PlannerSessionDO"
+script_name = "react-planner-agent-gateway"
+
+# Container binding for react-planner container instances
+[[container_bindings]]
+name = "PLANNER_CONTAINER"
+# Container name will be configured during deployment
+# container_id = "your-container-id"
+
+# Queue for asynchronous task processing
+[[queues.producers]]
+binding = "PLANNER_TASKS"
+queue = "planner-tasks-queue"
+
+[[queues.consumers]]
+queue = "planner-tasks-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3
+
+# R2 bucket for storing plan files (optional)
+[[r2_buckets]]
+binding = "PLANNER_STORAGE"
+bucket_name = "react-planner-storage"
+
+# KV for metadata and caching (optional)
+[[kv_namespaces]]
+binding = "PLANNER_METADATA"
+id = "your-kv-namespace-id"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+LOG_LEVEL = "info"
+
+# Development overrides
+[env.dev]
+vars = { ENVIRONMENT = "development", LOG_LEVEL = "debug" }
+
+# Durable Object migrations (for initial deployment)
+[[migrations]]
+tag = "v1"
+new_classes = ["PlannerSessionDO"]
+
+# Observability
+[observability]
+enabled = true
+head_sampling_rate = 1

@@ -1,0 +1,10 @@
+# Cloudflare Worker Development Variables
+# Copy this file to .dev.vars and fill in your values
+# .dev.vars is used by `wrangler dev` for local development
+
+# Container Authentication
+# For development/testing, you can use the value below
+# For production, generate a secure key with:
+#   openssl rand -base64 32
+#   or: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+WORKER_API_KEY=4156582389
