@@ -29,42 +29,6 @@ const VALID_ITEM_TYPES = [
   'air-conditioner'
 ];
 
-// Authentication middleware for sensitive endpoints
-function requireAuth(req, res, next) {
-  const apiKey = process.env.WORKER_API_KEY;
-
-  // If no WORKER_API_KEY is set, allow requests (development mode only)
-  // Production mode enforces WORKER_API_KEY at server startup
-  if (!apiKey) {
-    console.warn('Warning: No WORKER_API_KEY set. Authentication bypassed for development.');
-    return next();
-  }
-
-  // Validate Bearer token
-  const authHeader = req.headers['authorization'];
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      success: false,
-      error: 'Missing or invalid authorization header. Use: Authorization: Bearer <api-key>'
-    });
-  }
-
-  const token = authHeader.substring(7);
-
-  // Constant-time comparison to prevent timing attacks
-  const providedHash = crypto.createHash('sha256').update(token).digest('hex');
-  const validHash = crypto.createHash('sha256').update(apiKey).digest('hex');
-
-  if (providedHash !== validHash) {
-    return res.status(403).json({
-      success: false,
-      error: 'Invalid API key'
-    });
-  }
-
-  next();
-}
-
 // Validation helper for item types
 function validateItemType(itemType) {
   if (!itemType) {
@@ -265,8 +229,8 @@ app.post('/action', async (req, res) => {
   }
 });
 
-// Execute custom script (PROTECTED - requires authentication)
-app.post('/execute', requireAuth, async (req, res) => {
+// Execute custom script
+app.post('/execute', async (req, res) => {
   try {
     const { script } = req.body;
 
@@ -379,24 +343,12 @@ process.on('SIGTERM', async () => {
 // Start server
 const PORT = process.env.PORT || 8080;
 
-// CRITICAL: Enforce WORKER_API_KEY in production before starting server
-if (process.env.NODE_ENV === 'production' && !process.env.WORKER_API_KEY) {
-  console.error('CRITICAL: WORKER_API_KEY environment variable must be set in production!');
-  console.error('The server will not start without proper authentication configured.');
-  console.error('Set WORKER_API_KEY in your environment or use NODE_ENV=development for testing.');
-  process.exit(1);
-}
-
 initBrowser()
   .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Container server running on port ${PORT}`);
-      console.log('Ready to accept commands');
-      if (process.env.NODE_ENV === 'production') {
-        console.log('Running in PRODUCTION mode with authentication enabled');
-      } else {
-        console.warn('Running in DEVELOPMENT mode - authentication is BYPASSED');
-      }
+      console.log('Ready to accept commands from Cloudflare Worker');
+      console.log('Note: Authentication is handled by the Worker, not by this container');
     });
   })
   .catch(error => {
