@@ -17,7 +17,10 @@
     "update-version-file": "const-version ./package.json ./src/version.js",
     "version": "npm run update-version-file && npm run build && npm run add-build-to-vcs",
     "postpublish": "npm run website-update",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "npm run build && npm run website-update",
+    "deploy:worker": "cd cloudflare-planner/worker && npm run deploy",
+    "deploy:all": "npm run deploy && npm run deploy:worker"
   },
   "repository": {
     "type": "git",
