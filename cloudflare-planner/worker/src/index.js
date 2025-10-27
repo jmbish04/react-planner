@@ -29,6 +29,55 @@ function handleOptions() {
 }
 
 /**
+ * Verify authentication using constant-time comparison to prevent timing attacks
+ */
+async function verifyAuth(request, env) {
+  const apiKey = env.WORKER_API_KEY;
+
+  // If no WORKER_API_KEY is set, allow requests (development mode only)
+  if (!apiKey) {
+    console.warn('Warning: No WORKER_API_KEY set. Authentication bypassed for development.');
+    return true;
+  }
+
+  // Validate Bearer token
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+
+  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+  // To prevent timing attacks, we hash both the provided token and the stored API key,
+  // and then compare the hashes in a constant-time manner.
+  try {
+    const encoder = new TextEncoder();
+    const tokenData = encoder.encode(token);
+    const keyData = encoder.encode(apiKey);
+
+    const tokenHashBuffer = await crypto.subtle.digest('SHA-256', tokenData);
+    const keyHashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+
+    const tokenHash = new Uint8Array(tokenHashBuffer);
+    const keyHash = new Uint8Array(keyHashBuffer);
+
+    if (tokenHash.length !== keyHash.length) {
+      // This should not happen with a consistent hash algorithm but is a good safeguard.
+      return false;
+    }
+
+    let mismatch = 0;
+    for (let i = 0; i < tokenHash.length; i++) {
+      mismatch |= tokenHash[i] ^ keyHash[i];
+    }
+    return mismatch === 0;
+  } catch (e) {
+    console.error('Error during auth verification:', e);
+    return false;
+  }
+}
+
+/**
  * Get or create a session Durable Object
  */
 function getSession(env, sessionId) {
@@ -58,6 +107,14 @@ export default {
           service: 'react-planner-agent-gateway',
           timestamp: Date.now()
         }, { headers: CORS_HEADERS });
+      }
+
+      // Verify authentication for all protected endpoints
+      if (!(await verifyAuth(request, env))) {
+        return Response.json(
+          { error: 'Unauthorized. Use: Authorization: Bearer <api-key>' },
+          { status: 401, headers: CORS_HEADERS }
+        );
       }
 
       // Session-based endpoints
