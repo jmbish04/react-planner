@@ -18,6 +18,11 @@ container/planner-dist/
 .env
 .env.local
 .env.production
+.dev.vars
+
+# Keep template files
+!.env.template
+!.dev.vars.template
 
 # IDE
 .vscode/

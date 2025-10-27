@@ -155,7 +155,7 @@ docker run -p 8080:8080 react-planner-container
 # Test locally with authentication (production mode)
 docker run -p 8080:8080 \
   -e NODE_ENV=production \
-  -e API_KEY=your-secret-api-key \
+  -e WORKER_API_KEY=your-secret-api-key \
   react-planner-container
 
 # In another terminal, test the API:
@@ -557,19 +557,19 @@ The container server includes built-in API key authentication for sensitive endp
 **Configuration:**
 
 1. **Development Mode** (default):
-   - No API_KEY required
+   - No WORKER_API_KEY required
    - Authentication bypassed with warning
    - Use for local testing only
 
 2. **Production Mode**:
    - Set `NODE_ENV=production`
-   - Set `API_KEY` environment variable
+   - Set `WORKER_API_KEY` environment variable
    - All requests to protected endpoints require `Authorization: Bearer <api-key>` header
 
 **Example with Authentication:**
 ```bash
 # Set API key in container environment
-export API_KEY="your-secure-random-api-key-here"
+export WORKER_API_KEY="your-secure-random-api-key-here"
 
 # Make authenticated request
 curl -X POST http://localhost:8080/execute \
@@ -582,7 +582,7 @@ curl -X POST http://localhost:8080/execute \
 - Constant-time string comparison prevents timing attacks
 - SHA-256 hashing for token validation
 - Clear error messages for debugging
-- Production enforcement of API_KEY
+- Production enforcement of WORKER_API_KEY
 
 ### Input Validation
 
@@ -626,7 +626,7 @@ Invalid item types return a 400 error with available options:
 
 ### Security Best Practices
 
-- **Always set API_KEY in production** for container authentication
+- **Always set WORKER_API_KEY in production** for container authentication
 - Implement additional authentication/authorization in the Worker layer
 - Rate limiting per user
 - Validate all commands before execution

@@ -13,7 +13,7 @@ services:
       - LOG_LEVEL=debug
       # Uncomment for production with authentication:
       # - NODE_ENV=production
-      # - API_KEY=your-secure-api-key-here
+      # - WORKER_API_KEY=your-secure-api-key-here
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s

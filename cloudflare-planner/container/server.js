@@ -31,12 +31,12 @@ const VALID_ITEM_TYPES = [
 
 // Authentication middleware for sensitive endpoints
 function requireAuth(req, res, next) {
-  const apiKey = process.env.API_KEY;
+  const apiKey = process.env.WORKER_API_KEY;
 
-  // If no API_KEY is set, allow requests (development mode only)
-  // Production mode enforces API_KEY at server startup
+  // If no WORKER_API_KEY is set, allow requests (development mode only)
+  // Production mode enforces WORKER_API_KEY at server startup
   if (!apiKey) {
-    console.warn('Warning: No API_KEY set. Authentication bypassed for development.');
+    console.warn('Warning: No WORKER_API_KEY set. Authentication bypassed for development.');
     return next();
   }
 
@@ -379,11 +379,11 @@ process.on('SIGTERM', async () => {
 // Start server
 const PORT = process.env.PORT || 8080;
 
-// CRITICAL: Enforce API_KEY in production before starting server
-if (process.env.NODE_ENV === 'production' && !process.env.API_KEY) {
-  console.error('CRITICAL: API_KEY environment variable must be set in production!');
+// CRITICAL: Enforce WORKER_API_KEY in production before starting server
+if (process.env.NODE_ENV === 'production' && !process.env.WORKER_API_KEY) {
+  console.error('CRITICAL: WORKER_API_KEY environment variable must be set in production!');
   console.error('The server will not start without proper authentication configured.');
-  console.error('Set API_KEY in your environment or use NODE_ENV=development for testing.');
+  console.error('Set WORKER_API_KEY in your environment or use NODE_ENV=development for testing.');
   process.exit(1);
 }
 
