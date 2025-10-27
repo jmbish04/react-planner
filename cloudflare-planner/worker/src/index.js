@@ -100,7 +100,7 @@ export default {
     const path = url.pathname;
 
     try {
-      // Health check
+      // Health check (public endpoint)
       if (path === '/health' || path === '/') {
         return Response.json({
           status: 'healthy',
