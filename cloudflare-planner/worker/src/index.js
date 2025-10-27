@@ -55,8 +55,10 @@ async function verifyAuth(request, env) {
     const tokenData = encoder.encode(token);
     const keyData = encoder.encode(apiKey);
 
-    const tokenHashBuffer = await crypto.subtle.digest('SHA-256', tokenData);
-    const keyHashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+    const [tokenHashBuffer, keyHashBuffer] = await Promise.all([
+      crypto.subtle.digest('SHA-256', tokenData),
+      crypto.subtle.digest('SHA-256', keyData)
+    ]);
 
     const tokenHash = new Uint8Array(tokenHashBuffer);
     const keyHash = new Uint8Array(keyHashBuffer);
