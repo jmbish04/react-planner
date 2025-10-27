@@ -103,7 +103,7 @@ First, build the react-planner demo application:
 
 ```bash
 # From the root of react-planner repository
-cd /home/user/react-planner
+cd ../../react-planner # Assuming cloudflare-planner is a sibling of the main repo
 
 # Install dependencies
 npm install
