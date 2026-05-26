@@ -1,0 +1,53 @@
+{
+  "timestamp": "2026-05-26T03:48:00Z",
+  "environment": {
+    "node_version": "24.15.0",
+    "npm_version": "11.12.1",
+    "yarn_version": "1.22.22",
+    "platform": "linux",
+    "package_manager": "yarn"
+  },
+  "modifications": {
+    "nvmrc_created": true,
+    "nvmrc_target_version": "16.20.2",
+    "node_options_flag": "NODE_OPTIONS=--openssl-legacy-provider",
+    "reason": "Node 24.15.0 requires OpenSSL legacy provider flag for Webpack 4 compatibility"
+  },
+  "installation": {
+    "command": "yarn install --frozen-lockfile",
+    "status": "success",
+    "duration_seconds": 8.9
+  },
+  "compilation": {
+    "command": "NODE_OPTIONS=--openssl-legacy-provider yarn start",
+    "config": "demo/webpack.config.js",
+    "mode": "development",
+    "port": 9000,
+    "status": "success",
+    "output": "Compiled successfully",
+    "webpack_version": "4.29.6",
+    "babel_version": "6.26.0"
+  },
+  "verification": {
+    "dev_server_running": true,
+    "port_9000_listening": true,
+    "process_id": 10332,
+    "static_assets_verified": true,
+    "catalog_textures_present": true
+  },
+  "dependencies": {
+    "react": "16.8.5",
+    "react-dom": "16.8.5",
+    "three": "0.94.0",
+    "webpack": "4.29.6",
+    "webpack-dev-server": "3.7.1",
+    "babel-core": "6.26.3"
+  },
+  "notes": [
+    "Legacy project successfully initialized with Node 24.15.0 using OpenSSL legacy provider",
+    "All static assets including textures, OBJ/MTL files verified in demo/dist/catalog/",
+    "Dev server warm on port 9000",
+    "No compilation errors or warnings",
+    "Webpack 4 + Babel 6 + React 16 stack functional"
+  ]
+}
