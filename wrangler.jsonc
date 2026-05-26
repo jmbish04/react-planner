@@ -1,0 +1,48 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "colby-architect-core",
+  "main": "src/backend/index.ts",
+  "compatibility_date": "2026-05-25",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "FloorplanAgent",
+        "class_name": "FloorplanAgent"
+      }
+    ]
+  },
+  "d1_databases": {
+    "bindings": [
+      {
+        "binding": "DB",
+        "database_name": "colby_floorplan_db",
+        "database_id": "00000000-0000-0000-0000-000000000000",
+        "migrations_dir": "./drizzle"
+      }
+    ]
+  },
+  "ai": {
+    "binding": "AI"
+  },
+  "browser": {
+    "binding": "BROWSER"
+  },
+  "vars": {
+    "CLOUDFLARE_ACCOUNT_ID": "your_account_id_here"
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "FloorplanAgent"
+      ]
+    }
+  ]
+}

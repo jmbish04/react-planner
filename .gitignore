@@ -4,3 +4,30 @@ node_modules
 dist/*
 !dist/index.html
 .vscode
+
+# Cloudflare Workers
+.wrangler/
+.mf/
+wrangler.toml
+
+# Build outputs
+lib/
+es/
+demo/dist/
+
+# Environment files
+.env
+.env.local
+.dev.vars
+
+# Logs
+*.log
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# Temporary files
+*.tmp
+*.temp

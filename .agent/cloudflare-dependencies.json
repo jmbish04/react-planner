@@ -1,0 +1,28 @@
+{
+  "cloudflare_dependencies": {
+    "agents-sdk": "^1.0.0",
+    "hono": "^4.0.0",
+    "drizzle-orm": "^0.30.0",
+    "drizzle-kit": "^0.20.0",
+    "puppeteer-core": "^22.0.0",
+    "workers-ai-provider": "^1.0.0",
+    "ai": "^3.0.0",
+    "zod": "^3.22.0",
+    "@cloudflare/ai-chat": "^1.0.0",
+    "@assistant-ui/react": "^0.5.0",
+    "@assistant-ui/react-ai-sdk": "^0.5.0",
+    "wrangler": "^3.50.0"
+  },
+  "typescript_dependencies": {
+    "typescript": "^5.3.0",
+    "@types/react": "^18.2.0",
+    "@types/node": "^20.11.0"
+  },
+  "installation_instructions": {
+    "note": "These dependencies should be added to package.json",
+    "commands": [
+      "npm install agents-sdk hono drizzle-orm puppeteer-core workers-ai-provider ai zod @cloudflare/ai-chat @assistant-ui/react @assistant-ui/react-ai-sdk",
+      "npm install -D wrangler drizzle-kit typescript @types/react @types/node"
+    ]
+  }
+}
