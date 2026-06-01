@@ -69,25 +69,37 @@ Current spatial configuration tree: ${JSON.stringify(state.layoutTree)}`,
           }),
           execute: async (params) => {
             const currentTree = state.layoutTree;
-            const layer = currentTree.layers[currentTree.selectedLayer];
+            const layer = currentTree?.layers?.[currentTree?.selectedLayer];
 
-            if (params.targetType === "line" && layer.lines[params.elementId]) {
-              layer.lines[params.elementId].properties = {
-                ...layer.lines[params.elementId].properties,
-                ...params.properties
-              };
-            } else if (params.targetType === "item" && layer.items[params.elementId]) {
-              layer.items[params.elementId].properties = {
-                ...layer.items[params.elementId].properties,
-                ...params.properties
-              };
+            if (!layer) {
+              return `Error: Selected layer not found in layout tree.`;
+            }
+
+            if (params.targetType === "line") {
+              if (layer.lines[params.elementId]) {
+                layer.lines[params.elementId].properties = {
+                  ...layer.lines[params.elementId].properties,
+                  ...params.properties
+                };
+              } else {
+                return `Error: Line element with ID ${params.elementId} not found.`;
+              }
+            } else if (params.targetType === "item") {
+              if (layer.items[params.elementId]) {
+                layer.items[params.elementId].properties = {
+                  ...layer.items[params.elementId].properties,
+                  ...params.properties
+                };
+              } else {
+                const newId = params.elementId || "element-" + crypto.randomUUID().slice(0, 8);
+                layer.items[newId] = {
+                  id: newId,
+                  type: "kitchen-node",
+                  properties: params.properties
+                };
+              }
             } else {
-              const newId = params.elementId || "element-" + crypto.randomUUID().slice(0, 8);
-              layer.items[newId] = {
-                id: newId,
-                type: "kitchen-node",
-                properties: params.properties
-              };
+              return `Error: Unsupported target type ${params.targetType}.`;
             }
 
             state.layoutTree = currentTree;
@@ -104,11 +116,13 @@ Current spatial configuration tree: ${JSON.stringify(state.layoutTree)}`,
           execute: async ({ changeSummary }) => {
             const revisionUuid = crypto.randomUUID();
 
-            const existingRevisions = await db.select()
+            const lastRevision = await db.select({ revisionNumber: revisions.revisionNumber })
               .from(revisions)
-              .where(eq(revisions.projectId, state.currentProject!));
+              .where(eq(revisions.projectId, state.currentProject!))
+              .orderBy(desc(revisions.revisionNumber))
+              .limit(1);
 
-            const revisionIndex = existingRevisions.length + 1;
+            const revisionIndex = lastRevision.length > 0 ? lastRevision[0].revisionNumber + 1 : 1;
 
             await db.insert(revisions).values({
               id: revisionUuid,
@@ -152,60 +166,62 @@ Current spatial configuration tree: ${JSON.stringify(state.layoutTree)}`,
           execute: async ({ currentRevisionId }) => {
             const targetUrl = `https://colby-studio-dev.pages.dev/preview?sessionId=${this.ctx.id.toString()}`;
             const browserInstance = await puppeteer.launch(this.env.BROWSER);
-            const activePage = await browserInstance.newPage();
+            try {
+              const activePage = await browserInstance.newPage();
 
-            await activePage.setViewport({ width: 1440, height: 900 });
-            await activePage.goto(targetUrl, { waitUntil: "networkidle0" });
+              await activePage.setViewport({ width: 1440, height: 900 });
+              await activePage.goto(targetUrl, { waitUntil: "networkidle0" });
 
-            const structuralOrientations = ["2d", "3d"];
-            const lightVariations = ["day", "night"];
+              const structuralOrientations = ["2d", "3d"];
+              const lightVariations = ["day", "night"];
 
-            for (const orientation of structuralOrientations) {
-              for (const timeMode of lightVariations) {
-                await activePage.evaluate((view, mode) => {
-                  if ((window as any).setWorkspaceViewportMode) {
-                    (window as any).setWorkspaceViewportMode(view);
-                    (window as any).applySpatialEnvironmentLighting(mode);
+              for (const orientation of structuralOrientations) {
+                for (const timeMode of lightVariations) {
+                  await activePage.evaluate((view, mode) => {
+                    if ((window as any).setWorkspaceViewportMode) {
+                      (window as any).setWorkspaceViewportMode(view);
+                      (window as any).applySpatialEnvironmentLighting(mode);
+                    }
+                  }, orientation, timeMode);
+
+                  await new Promise((r) => setTimeout(r, 800));
+
+                  const rawBinaryBuffer = await activePage.screenshot({ type: "jpeg", quality: 85 }) as Buffer;
+
+                  const assetFormPayload = new FormData();
+                  assetFormPayload.append("file", new Blob([rawBinaryBuffer], { type: "image/jpeg" }), `snapshot_${orientation}_${timeMode}.jpg`);
+
+                  const imagesResponse = await fetch(
+                    `https://api.cloudflare.com/client/v4/accounts/${this.env.CLOUDFLARE_ACCOUNT_ID}/images/v1`,
+                    {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${this.env.IMAGES_API_TOKEN}`
+                      },
+                      body: assetFormPayload
+                    }
+                  );
+
+                  if (imagesResponse.ok) {
+                    const imagePayloadJson = await imagesResponse.json() as any;
+                    const publicDeliveryUrl = imagePayloadJson.result.variants[0];
+
+                    await db.insert(snapshots).values({
+                      id: crypto.randomUUID(),
+                      sessionId: this.ctx.id.toString(),
+                      revisionId: currentRevisionId,
+                      imageUrl: publicDeliveryUrl,
+                      viewMode: orientation,
+                      timeOfDay: timeMode,
+                      createdAt: new Date().toISOString()
+                    });
                   }
-                }, orientation, timeMode);
-
-                await new Promise((r) => setTimeout(r, 800));
-
-                const rawBinaryBuffer = await activePage.screenshot({ type: "jpeg", quality: 85 }) as Buffer;
-
-                const assetFormPayload = new FormData();
-                assetFormPayload.append("file", new Blob([rawBinaryBuffer], { type: "image/jpeg" }), `snapshot_${orientation}_${timeMode}.jpg`);
-
-                const imagesResponse = await fetch(
-                  `https://api.cloudflare.com/client/v4/accounts/${this.env.CLOUDFLARE_ACCOUNT_ID}/images/v1`,
-                  {
-                    method: "POST",
-                    headers: {
-                      Authorization: `Bearer ${this.env.IMAGES_API_TOKEN}`
-                    },
-                    body: assetFormPayload
-                  }
-                );
-
-                if (imagesResponse.ok) {
-                  const imagePayloadJson = await imagesResponse.json() as any;
-                  const publicDeliveryUrl = imagePayloadJson.result.variants[0];
-
-                  await db.insert(snapshots).values({
-                    id: crypto.randomUUID(),
-                    sessionId: this.ctx.id.toString(),
-                    revisionId: currentRevisionId,
-                    imageUrl: publicDeliveryUrl,
-                    viewMode: orientation,
-                    timeOfDay: timeMode,
-                    createdAt: new Date().toISOString()
-                  });
                 }
               }
+              return `Dual-lighting vision loop pipeline complete. Four snapshots generated and archived cleanly via Cloudflare Images.`;
+            } finally {
+              await browserInstance.close();
             }
-
-            await browserInstance.close();
-            return `Dual-lighting vision loop pipeline complete. Four snapshots generated and archived cleanly via Cloudflare Images.`;
           }
         })
       }

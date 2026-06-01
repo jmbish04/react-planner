@@ -19,9 +19,10 @@
     "postpublish": "npm run website-update",
     "test": "echo \"Error: no test specified\" && exit 1",
     "wrangler:dev": "wrangler dev",
-    "wrangler:deploy": "wrangler deploy",
+    "wrangler:deploy": "wrangler deploy --minify",
     "db:generate": "drizzle-kit generate:sqlite",
-    "db:migrate": "wrangler d1 migrations apply colby_floorplan_db"
+    "db:migrate": "wrangler d1 migrations apply colby_floorplan_db --remote",
+    "deploy": "npm run db:generate && npm run db:migrate && npm run wrangler:deploy"
   },
   "repository": {
     "type": "git",

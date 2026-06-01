@@ -10,6 +10,8 @@ interface Props {
 export const FloorplanStudio: React.FC<Props> = ({ sessionId }) => {
   const [workspace, setWorkspace] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"viewport" | "history">("viewport");
+  const [viewMode, setViewMode] = useState<string>("2d");
+  const [lightingMode, setLightingMode] = useState<string>("day");
 
   const edgeAgentConnection = useAgent({
     agent: "floorplan-agent",
@@ -31,9 +33,11 @@ export const FloorplanStudio: React.FC<Props> = ({ sessionId }) => {
 
     (window as any).setWorkspaceViewportMode = (view: string) => {
       console.log(`[Headless Driver] Toggling layout rendering matrix viewport to: ${view}`);
+      setViewMode(view);
     };
     (window as any).applySpatialEnvironmentLighting = (mode: string) => {
       console.log(`[Headless Driver] Re-lighting simulation parameter configured to environment: ${mode}`);
+      setLightingMode(mode);
     };
   }, [edgeAgentConnection]);
 
