@@ -64,11 +64,11 @@ export const FloorplanStudio: React.FC<Props> = ({ sessionId }) => {
         <div className="flex-1 w-full relative flex items-center justify-center p-8 bg-[radial-gradient(#1e1e24_1px,transparent_1px)] [background-size:16px_16px]">
           {activeTab === "viewport" ? (
             <div className="flex flex-col items-center gap-4 text-center max-w-md">
-              <div className="w-16 h-16 rounded border border-zinc-800 bg-zinc-950/40 flex items-center justify-center font-mono text-zinc-400 text-sm">
-                3D
+              <div className="w-16 h-16 rounded border border-zinc-800 bg-zinc-950/40 flex items-center justify-center font-mono text-zinc-400 text-sm uppercase">
+                {viewMode}
               </div>
               <p className="text-xs text-zinc-400 font-mono leading-relaxed uppercase tracking-wider">
-                {workspace ? `Active Layout State Synced // ${JSON.stringify(workspace).length} Bytes Serialized` : "Awaiting Remote State Synchronization Engine..."}
+                {workspace ? `Active Layout State Synced // ${JSON.stringify(workspace).length} Bytes Serialized // Lighting: ${lightingMode}` : "Awaiting Remote State Synchronization Engine..."}
               </p>
             </div>
           ) : (
