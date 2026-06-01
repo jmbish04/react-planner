@@ -1,0 +1,33 @@
+{
+  "rule_scope": "blueprint_orchestration_control_plane",
+  "dependencies": [
+    "agents-sdk",
+    "drizzle-orm",
+    "puppeteer-core",
+    "@assistant-ui/react",
+    "hono",
+    "workers-ai-provider",
+    "ai",
+    "zod"
+  ],
+  "standards": {
+    "compatibility_date": "2026-05-25",
+    "theme_alignment": "strict_moody_contrast_dark",
+    "persistence_bridge": "d1_sqlite_mirroring_protocol",
+    "omission_policy": "never_allow_code_truncation_or_placeholder_comments"
+  },
+  "architecture_principles": {
+    "state_management": "Durable Objects with persistent storage",
+    "database": "Cloudflare D1 with Drizzle ORM for type-safe queries",
+    "ai_integration": "Workers AI via AI Gateway for LLM capabilities",
+    "browser_automation": "Cloudflare Browser Run with Puppeteer for headless rendering",
+    "real_time_communication": "WebSocket connections via agents-sdk",
+    "image_storage": "Cloudflare Images API for CDN-optimized delivery"
+  },
+  "code_standards": {
+    "typescript": "strict mode enabled",
+    "no_placeholders": "all implementations must be complete",
+    "error_handling": "comprehensive try-catch with meaningful messages",
+    "type_safety": "explicit types for all function parameters and returns"
+  }
+}
