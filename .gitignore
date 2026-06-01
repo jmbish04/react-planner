@@ -25,6 +25,12 @@ demo/dist/
 yarn-debug.log*
 yarn-error.log*
 
+# Yarn (keep install-state.gz, ignore cache and unplugged)
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.pnp.*
+
 # Testing
 coverage/
 

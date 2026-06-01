@@ -113,5 +113,6 @@
     "react": "16.x",
     "react-dom": "16.x",
     "three": "0.94.x"
-  }
+  },
+  "packageManager": "yarn@4.9.1"
 }
