@@ -9,15 +9,17 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/agents/*"]
+    "run_worker_first": ["/agents/*", "/mcp", "/mcp/*"]
   },
   "durable_objects": {
     "bindings": [
-      { "name": "BlueprintAgent", "class_name": "BlueprintAgent" }
+      { "name": "BlueprintAgent", "class_name": "BlueprintAgent" },
+      { "name": "BlueprintMCP", "class_name": "BlueprintMCP" }
     ]
   },
   "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["BlueprintAgent"] }
+    { "tag": "v1", "new_sqlite_classes": ["BlueprintAgent"] },
+    { "tag": "v2", "new_sqlite_classes": ["BlueprintMCP"] }
   ],
   "d1_databases": [
     {

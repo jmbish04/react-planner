@@ -59,6 +59,14 @@ export class BlueprintAgent extends AIChatAgent<Env, BlueprintState> {
     this.setState({ ...this.state, scene: next });
   }
 
+  // Read the current canonical scene. Used by the MCP server, which proxies to
+  // this same DO instance so iOS (Claude app) and the desktop browser converge
+  // on one blueprint and updates broadcast to all connected clients.
+  @callable()
+  getScene(): Scene {
+    return this.state.scene;
+  }
+
   // Push manual canvas edits (human drawing with the mouse) up to the agent's
   // canonical state so the next chat turn reasons over the latest geometry.
   @callable()
