@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'node:path';
 
 // The chat sidebar is a standalone React 18 bundle that mounts into #sidebar
@@ -7,7 +8,7 @@ import { resolve } from 'node:path';
 // dir (../dist/chat) with stable filenames so the webpack-built index.html can
 // reference /chat/chat.js + /chat/chat.css.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
   },

@@ -9,6 +9,8 @@ import {
 } from '@assistant-ui/react';
 import { useAISDKRuntime } from '@assistant-ui/react-ai-sdk';
 import { onPlannerReady, applyScene, subscribeSceneChange, type Scene } from './planner';
+import { DebugPanel } from './components/DebugPanel';
+import { pushLog } from './debug-log';
 
 interface BlueprintState {
   scene: Scene;
@@ -38,8 +40,11 @@ export default function App() {
       const json = JSON.stringify(state.scene);
       if (json === lastSceneJSON.current) return;
       lastSceneJSON.current = json;
+      const layer = Object.values(state.scene.layers || {})[0] as any;
+      pushLog('info', 'agent', `scene update applied to canvas (${layer ? Object.keys(layer.lines || {}).length : 0} walls)`);
       applyScene(state.scene); // agent edited the blueprint -> paint the canvas
     },
+    onError: (e: unknown) => pushLog('error', 'agent', e instanceof Error ? e.message : String(e)),
   });
 
   // Cloudflare agent chat (WebSocket transport) adapted into an assistant-ui runtime.
@@ -147,6 +152,8 @@ export default function App() {
             <ComposerPrimitive.Send className="sa-send">Send</ComposerPrimitive.Send>
           </ComposerPrimitive.Root>
         </ThreadPrimitive.Root>
+
+        <DebugPanel />
       </div>
     </AssistantRuntimeProvider>
   );
