@@ -118,13 +118,18 @@ ReactDOM.render(
         <div style={{ width: '100%', height: '100%', position: 'relative' }}>
             <ContainerDimensions>
                 {({ width, height }) =>
-                    <ReactPlanner
-                        catalog={MyCatalog}
-                        width={width}
-                        height={height}
-                        plugins={plugins}
-                        stateExtractor={state => state.get('react-planner')}
-                    />}
+                    // react-planner reserves ~265px for its toolbar+sidebar and
+                    // computes width-265 internally; rendering before the container
+                    // has a real width yields negative SVG dims. Wait for a sane width.
+                    (width > 300 && height > 0)
+                        ? <ReactPlanner
+                            catalog={MyCatalog}
+                            width={width}
+                            height={height}
+                            plugins={plugins}
+                            stateExtractor={state => state.get('react-planner')}
+                        />
+                        : null}
             </ContainerDimensions>
         </div>
     </Provider>,

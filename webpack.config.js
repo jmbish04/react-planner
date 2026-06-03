@@ -15,7 +15,9 @@ module.exports = (env, self) => {
         },
         output: {
             path: path.join(__dirname, 'dist'),
-            filename: '[name].js',
+            // Content-hashed so each deploy produces a new filename and browsers
+            // never serve a stale bundle (HtmlWebpackPlugin injects the hashed name).
+            filename: isProduction ? '[name].[contenthash:8].js' : '[name].js',
         },
         devtool: isProduction ? 'source-map' : 'eval',
         devServer: {

@@ -110,6 +110,36 @@ export function addRoom(
   return { scene: s, lineIds };
 }
 
+// Default dimensions per hole type (cm), mirroring the catalog element defaults.
+// Holes MUST carry these — react-planner's hole renderers read
+// element.properties.get('width').get('length') directly and crash on missing
+// values. Writing valid defaults here keeps the canonical scene renderable even
+// for clients that don't run catalog normalization.
+const HOLE_DEFAULTS: Record<string, { width: number; height: number; altitude: number; thickness: number }> = {
+  'door': { width: 80, height: 215, altitude: 0, thickness: 30 },
+  'double door': { width: 160, height: 215, altitude: 0, thickness: 30 },
+  'sliding door': { width: 200, height: 215, altitude: 0, thickness: 30 },
+  'panic door': { width: 80, height: 215, altitude: 0, thickness: 30 },
+  'double panic door': { width: 160, height: 215, altitude: 0, thickness: 30 },
+  'gate': { width: 80, height: 215, altitude: 0, thickness: 30 },
+  'window': { width: 90, height: 100, altitude: 90, thickness: 10 },
+  'sash window': { width: 90, height: 100, altitude: 90, thickness: 10 },
+  'window-curtain': { width: 90, height: 100, altitude: 90, thickness: 10 },
+  'venetian-blind-window': { width: 90, height: 100, altitude: 90, thickness: 10 },
+};
+
+function holeProperties(type: string, overrides?: Record<string, unknown>): Record<string, unknown> {
+  const d = HOLE_DEFAULTS[type] || HOLE_DEFAULTS['door'];
+  return {
+    width: { length: d.width },
+    height: { length: d.height },
+    altitude: { length: d.altitude },
+    thickness: { length: d.thickness },
+    flip_orizzontal: false,
+    ...(overrides || {}),
+  };
+}
+
 /** Add a door/window hole on an existing wall. offset is 0..1 along the line. */
 export function addHole(
   scene: Scene,
@@ -122,7 +152,7 @@ export function addHole(
   const holeId = uid('h');
   layer.holes[holeId] = {
     id: holeId, type: args.type, line: args.lineId,
-    offset: args.offset ?? 0.5, properties: args.properties || {}, selected: false,
+    offset: args.offset ?? 0.5, properties: holeProperties(args.type, args.properties), selected: false,
   };
   line.holes.push(holeId);
   return { scene: next, holeId };
