@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Smart Architect — Technical Documentation</title>
+<style>
+  :root {
+    --bg: #0b0d11;
+    --bg-elev: #12151b;
+    --bg-code: #0e1116;
+    --text: #e7eaf0;
+    --text-dim: #a2acba;
+    --text-faint: #6b7686;
+    --accent: #6e8cff;
+    --accent-soft: rgba(110, 140, 255, 0.14);
+    --warn: #f0b95c;
+    --warn-soft: rgba(240, 185, 92, 0.10);
+    --ring: rgba(255, 255, 255, 0.06);
+    --ring-strong: rgba(255, 255, 255, 0.10);
+    --divider: rgba(255, 255, 255, 0.05);
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    max-width: 1180px;
+    margin: 0 auto;
+    gap: 3rem;
+    padding: 0 2rem;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 2.5rem 0 3rem;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.15rem;
+  }
+  .brand .dot { color: var(--accent); }
+  .brand-sub {
+    color: var(--text-faint);
+    font-size: 0.8rem;
+    margin-bottom: 1.75rem;
+  }
+  .toc { list-style: none; margin: 0; padding: 0; }
+  .toc li { margin: 0; }
+  .toc a {
+    display: block;
+    color: var(--text-dim);
+    padding: 0.32rem 0.75rem;
+    border-radius: 7px;
+    font-size: 0.9rem;
+    transition: background 0.15s, color 0.15s;
+  }
+  .toc a:hover { color: var(--text); background: var(--ring); text-decoration: none; }
+
+  /* Main */
+  main {
+    padding: 3rem 0 6rem;
+    min-width: 0;
+  }
+  .hero {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--divider);
+  }
+  .hero h1 {
+    font-size: 2.4rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.6rem;
+  }
+  .hero p { color: var(--text-dim); font-size: 1.1rem; margin: 0; max-width: 60ch; }
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+  }
+
+  section { margin-bottom: 3.25rem; scroll-margin-top: 2rem; }
+  h2 {
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+    padding-top: 0.5rem;
+  }
+  h3 {
+    font-size: 1.08rem;
+    letter-spacing: -0.01em;
+    margin: 1.75rem 0 0.6rem;
+    color: var(--text);
+  }
+  p { color: var(--text-dim); }
+  p strong, li strong { color: var(--text); font-weight: 600; }
+  ul, ol { color: var(--text-dim); padding-left: 1.25rem; }
+  li { margin: 0.3rem 0; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--bg-code);
+    padding: 0.12rem 0.4rem;
+    border-radius: 5px;
+    color: #cdd6f4;
+  }
+  pre {
+    background: var(--bg-code);
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    box-shadow: inset 0 0 0 1px var(--ring);
+    line-height: 1.55;
+  }
+  pre code { background: none; padding: 0; font-size: 0.84rem; color: #cdd6f4; }
+
+  .diagram {
+    background: var(--bg-code);
+    border-radius: 12px;
+    padding: 1.25rem 1.4rem;
+    box-shadow: inset 0 0 0 1px var(--ring);
+    overflow-x: auto;
+  }
+  .diagram pre {
+    background: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  .callout {
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin: 1.25rem 0;
+    background: var(--warn-soft);
+    box-shadow: inset 0 0 0 1px rgba(240, 185, 92, 0.22);
+  }
+  .callout .label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--warn);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  .callout p { color: var(--text); margin: 0; }
+
+  .card {
+    background: var(--bg-elev);
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem;
+    box-shadow: inset 0 0 0 1px var(--ring);
+    margin: 1rem 0;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.75rem; vertical-align: top; }
+  thead th { color: var(--text-faint); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  tbody tr { border-top: 1px solid var(--divider); }
+  td code { white-space: nowrap; }
+
+  .steps { counter-reset: step; list-style: none; padding: 0; }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 2.4rem;
+    margin: 0.9rem 0;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.05rem;
+    width: 1.6rem;
+    height: 1.6rem;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    display: grid;
+    place-items: center;
+  }
+
+  footer {
+    border-top: 1px solid var(--divider);
+    padding-top: 1.5rem;
+    margin-top: 2rem;
+    color: var(--text-faint);
+    font-size: 0.88rem;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; gap: 0; padding: 0 1.25rem; }
+    .sidebar {
+      position: static;
+      height: auto;
+      padding: 1.5rem 0 0.5rem;
+      border-bottom: 1px solid var(--divider);
+    }
+    .toc { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .toc a { padding: 0.25rem 0.6rem; font-size: 0.82rem; }
+    main { padding: 2rem 0 4rem; }
+    .hero h1 { font-size: 1.9rem; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">Smart Architect<span class="dot">.</span></div>
+    <div class="brand-sub">Technical documentation</div>
+    <nav>
+      <ul class="toc">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#blueprint">Blueprint &amp; Coordinates</a></li>
+        <li><a href="#agent">Agent &amp; Tools</a></li>
+        <li><a href="#realtime">Realtime &amp; Blueprint Bus</a></li>
+        <li><a href="#byok">AI Gateway BYOK</a></li>
+        <li><a href="#mcp">MCP &amp; Claude iOS</a></li>
+        <li><a href="#versioning">Versioning with D1</a></li>
+        <li><a href="#debug">Debug Panel</a></li>
+        <li><a href="#dev">Local Dev &amp; Deploy</a></li>
+        <li><a href="#layout">Project Layout</a></li>
+        <li><a href="#limitations">Known Limitations</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="hero">
+      <span class="pill">smart-architect.hacolby.workers.dev</span>
+      <h1>Smart Architect</h1>
+      <p>An AI-driven 2D/3D floorplan designer deployed as a single Cloudflare Worker — drive it from a chat sidebar or from the Claude iOS app, and watch the canvas update in real time.</p>
+    </div>
+
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>Smart Architect hosts an interactive floorplan editor built on the open-source
+      <a href="https://github.com/cvdlab/react-planner">react-planner</a> library. A conversational
+      AI agent — Claude <code>claude-opus-4-8</code> — edits a canonical floorplan
+      <em>scene</em> through structured tools: drawing rooms, walls, doors, windows, and furniture.
+      Every connected browser sees those edits stream in live over a WebSocket.</p>
+      <p>The defining trait of the system is that the blueprint is genuinely shared. A prompt typed
+      into the chat sidebar and a prompt sent from the Claude iOS app both converge on the same
+      authoritative scene held in a Durable Object, and every edit is versioned in D1. The desktop
+      canvas is a live view onto that single source of truth.</p>
+    </section>
+
+    <section id="architecture">
+      <h2>Architecture</h2>
+      <p>The browser page runs <strong>two completely separate React roots</strong> that never share
+      components. This is deliberate: react-planner is effectively pinned to React 16, while the
+      assistant-ui chat requires React 19. Rather than fight that, the two are decoupled into two
+      bundles mounted side by side.</p>
+
+      <table>
+        <thead><tr><th>Root</th><th>Mount</th><th>React</th><th>Bundler</th></tr></thead>
+        <tbody>
+          <tr><td>Canvas (react-planner editor)</td><td><code>#canvas</code></td><td>16</td><td>webpack 4</td></tr>
+          <tr><td>Chat sidebar (assistant-ui)</td><td><code>#sidebar</code></td><td>19</td><td>Vite</td></tr>
+        </tbody>
+      </table>
+
+      <p>They communicate only through a vanilla "blueprint bus" on <code>window.__planner</code>.
+      The canonical scene lives server-side in the <strong>BlueprintAgent</strong> Durable Object;
+      tool execution mutates DO state, which broadcasts over WebSocket so the canvas updates live.</p>
+
+      <div class="diagram">
+<pre>  Claude iOS app
+        │
+        │  POST /mcp  (MCP Streamable HTTP)
+        ▼
+  ┌───────────────┐     proxy: getAgentByName(..,'default')
+  │ BlueprintMCP  │ ──────────────────────────────┐
+  │ (McpAgent DO) │                                │
+  └───────────────┘                                ▼
+                                   ┌────────────────────────────────┐
+                                   │     BlueprintAgent (DO)         │
+                                   │  canonical scene JSON in state  │
+                                   │  tools → setState → broadcast   │
+                                   └───────────────┬────────────────┘
+                                                   │ WebSocket (state update)
+                                                   ▼
+              ┌──────────────────────── Desktop browser ────────────────────────┐
+              │  #canvas (React 16)            #sidebar (React 19)               │
+              │  react-planner editor  ◄── window.__planner ──►  assistant-ui    │
+              │        ▲ loadScene()                                  │ chat      │
+              │        └──────────────────────────────────────────────┘          │
+              └──────────────────────────────────────────────────────────────────┘</pre>
+      </div>
+
+      <h3>The chat path</h3>
+      <p>The sidebar wires assistant-ui to the Cloudflare Agent through a runtime chain. The UI is
+      composed from <code>@assistant-ui/react</code> primitives (<code>ThreadPrimitive</code>,
+      <code>MessagePrimitive</code>, <code>ComposerPrimitive</code>):</p>
+      <pre><code>useAgent            (agents/react)
+  → useAgentChat    (@cloudflare/ai-chat/react)
+  → useAISDKRuntime (@assistant-ui/react-ai-sdk)
+  → AssistantRuntimeProvider</code></pre>
+
+      <h3>The worker entry</h3>
+      <p><code>worker/index.ts</code> routes requests three ways: <code>/mcp*</code> →
+      <code>BlueprintMCP.serve</code>; <code>/agents/*</code> → <code>routeAgentRequest</code>
+      (the chat agent and its WebSocket); everything else → static assets via the
+      <code>ASSETS</code> binding with single-page-application fallback.</p>
+    </section>
+
+    <section id="blueprint">
+      <h2>The Blueprint Document &amp; Coordinate System</h2>
+      <p>The blueprint is a react-planner <em>plannerState</em> JSON document. Within a layer it is
+      organized into <strong>lines</strong> (walls), <strong>holes</strong> (doors/windows cut into
+      walls), <strong>items</strong> (furniture and fixtures), and the <strong>areas</strong> derived
+      from enclosed walls. Lines reference vertices by id; holes reference a line and an offset along
+      it; items carry a position and rotation.</p>
+      <div class="card">
+        <p style="margin:0"><strong>Coordinate system.</strong> Units are <strong>centimeters</strong>.
+        The origin is <strong>top-left</strong>, with <strong>+x to the right</strong> and
+        <strong>+y down</strong>. The default canvas is <strong>3000 × 2000 cm</strong>. Generated
+        geometry is expected to stay inside the canvas; grow it by clearing and redrawing if needed.</p>
+      </div>
+    </section>
+
+    <section id="agent">
+      <h2>The Agent &amp; Tools</h2>
+      <p>The <strong>BlueprintAgent</strong> (<code>worker/agent/blueprint.ts</code>) is a Cloudflare
+      <code>AIChatAgent</code> Durable Object. It holds the canonical scene in DO state and exposes a
+      <em>hybrid</em> tool set — bulk operations for big restructures and granular operations for
+      incremental edits. Tool execution mutates DO state via <code>setState</code>, which broadcasts
+      to connected browsers.</p>
+
+      <table>
+        <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>get_blueprint</code></td><td>Inspect current geometry — exact ids and coordinates.</td></tr>
+          <tr><td><code>set_blueprint</code></td><td>Replace the entire scene with a complete plannerState (bulk).</td></tr>
+          <tr><td><code>clear_canvas</code></td><td>Empty the scene (optionally resize the canvas).</td></tr>
+          <tr><td><code>new_room</code></td><td>Add a closed rectangular room (four walls) at a given footprint.</td></tr>
+          <tr><td><code>add_wall</code></td><td>Add a single wall segment between two points, reusing existing corner vertices.</td></tr>
+          <tr><td><code>add_hole</code></td><td>Cut a door/window into an existing wall line at an offset (0..1).</td></tr>
+          <tr><td><code>add_item</code></td><td>Place a furniture/fixture item at a position with a rotation.</td></tr>
+          <tr><td><code>remove_element</code></td><td>Remove a wall, hole, or item by id.</td></tr>
+          <tr><td><code>save_version</code></td><td>Snapshot the current scene into the D1 version DAG.</td></tr>
+          <tr><td><code>list_versions</code></td><td>List saved versions.</td></tr>
+          <tr><td><code>restore_version</code></td><td>Restore a previously saved version.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Catalog vocabulary</h3>
+      <p>react-planner elements draw their valid types and default properties from the catalog
+      (<code>app/catalog/</code>):</p>
+      <ul>
+        <li><strong>Lines</strong> — the line type in use is <code>wall</code>. Each line has two
+        vertices and a list of holes.</li>
+        <li><strong>Holes</strong> — openings cut into a wall: <code>door</code>, <code>window</code>,
+        and similar types, each with a <code>line</code> and an <code>offset</code> (0..1).</li>
+        <li><strong>Items</strong> — freestanding furniture/fixtures placed at <code>(x, y)</code> with
+        a <code>rotation</code>, each with a <code>type</code> from the catalog.</li>
+      </ul>
+      <p>Because agent-produced elements often omit per-element properties, the client's
+      <code>normalizeScene()</code> fills any missing property from the catalog's default values before
+      rendering (see <a href="#realtime">Realtime</a>).</p>
+    </section>
+
+    <section id="realtime">
+      <h2>Realtime &amp; the Blueprint Bus</h2>
+      <p>The two React roots talk only through a tiny vanilla bridge on <code>window.__planner</code>,
+      defined in <code>app/index.js</code>:</p>
+      <pre><code>window.__planner = {
+  getScene(),               // current react-planner scene JSON
+  loadScene(scene),         // load a scene into the canvas (normalized first)
+  onSceneChange(fn),        // subscribe to scene changes
+}</code></pre>
+      <p>When a tool mutates DO state, the change broadcasts over WebSocket. On the client, the
+      <code>useAgent</code> <code>onStateUpdate</code> callback hands the new scene to
+      <code>window.__planner.loadScene</code>, which re-renders the canvas — so an edit issued from
+      the chat sidebar, the Claude iOS app, or any other connected client appears live everywhere.</p>
+
+      <h3>Scene normalization (and why Autosave was removed)</h3>
+      <p>Agent-produced elements frequently omit per-element properties — for example a door's width or
+      height. Before calling react-planner's <code>loadProject</code>, <code>normalizeScene()</code>
+      fills every missing property from the catalog element's default value, so the renderers don't
+      crash on incomplete input. The catalog is the single source of truth for those defaults.</p>
+      <div class="callout">
+        <span class="label">Important</span>
+        <p>The react-planner Autosave plugin was <strong>removed</strong>. It restored un-normalized
+        scenes from <code>localStorage</code>, bypassing <code>normalizeScene()</code> and crashing the
+        renderers. The Durable Object and D1 are the source of truth — do not re-introduce Autosave.</p>
+      </div>
+    </section>
+
+    <section id="byok">
+      <h2>AI Gateway BYOK setup</h2>
+      <p>The model is Claude <code>claude-opus-4-8</code>, routed through <strong>Cloudflare AI
+      Gateway</strong> in bring-your-own-key (BYOK) mode. The gateway is named
+      <code>default-gateway</code> and the base URL is:</p>
+      <pre><code>https://gateway.ai.cloudflare.com/v1/&lt;ACCOUNT_ID&gt;/default-gateway/anthropic</code></pre>
+      <p>The worker reads the gateway token from a <strong>Secrets Store</strong> binding
+      (<code>await env.CLOUDFLARE_AI_GATEWAY_TOKEN.get()</code>) and passes it as the provider
+      <code>apiKey</code> (sent as the <code>x-api-key</code> header). The gateway recognizes that
+      token, authenticates the request, and swaps in the real Anthropic key it has stored.</p>
+
+      <div class="callout">
+        <span class="label">Gotcha — read this</span>
+        <p>Do <strong>not</strong> use a <code>cf-aig-authorization</code> header for this. In BYOK mode
+        the token belongs in the provider <strong><code>apiKey</code></strong> — that is the correct
+        contract. The real Anthropic key must be stored in the dashboard under
+        <strong>AI Gateway → default-gateway → Provider Keys</strong>.</p>
+      </div>
+      <p>See <code>worker/ai/anthropic.ts</code> for the implementation. No secret values live in the repo.</p>
+    </section>
+
+    <section id="mcp">
+      <h2>MCP Server &amp; connecting Claude iOS</h2>
+      <p>The <strong>BlueprintMCP</strong> Durable Object (<code>worker/mcp/blueprint-mcp.ts</code>) is
+      a Cloudflare <code>McpAgent</code> served at <code>/mcp</code> over MCP Streamable HTTP. Its tools
+      do not maintain their own state — they proxy to the <em>same</em> BlueprintAgent instance
+      (<code>getAgentByName(env.BlueprintAgent, 'default')</code> → <code>getScene</code> /
+      <code>syncScene</code>). It exposes the same vocabulary as the chat agent:
+      <code>get_blueprint</code>, <code>new_room</code>, <code>add_wall</code>, <code>add_hole</code>,
+      <code>add_item</code>, <code>remove_element</code>, <code>set_blueprint</code>,
+      <code>clear_canvas</code>, <code>save_version</code>, <code>list_versions</code>,
+      <code>restore_version</code>.</p>
+
+      <h3>Add it to the Claude iOS app</h3>
+      <ol class="steps">
+        <li>In the Claude iOS app, add a <strong>custom MCP connector</strong>.</li>
+        <li>Point it at <code>https://smart-architect.hacolby.workers.dev/mcp</code>.</li>
+        <li>Ask Claude to draw or modify a room. The MCP tools mutate the same blueprint your
+        desktop browser is viewing.</li>
+        <li>Watch the change appear on the desktop canvas in real time over the WebSocket.</li>
+      </ol>
+      <p>Because both surfaces resolve to the agent instance named <code>"default"</code>, a phone and a
+      desktop are editing one shared document.</p>
+    </section>
+
+    <section id="versioning">
+      <h2>Versioning with D1</h2>
+      <p>Persistence and history live in the D1 database <code>smart-architect-db</code>, accessed via
+      <strong>Drizzle ORM</strong> (<code>worker/db/</code>). The <code>versions</code> table is modeled
+      as a <strong>directed acyclic graph</strong>: every row carries a <code>parent_version_id</code>.</p>
+      <p>That structure means you can <strong>rollback</strong>, <strong>clone</strong>, and
+      <strong>branch</strong> the blueprint without ever losing prior versions — restoring an older
+      version creates a new node rather than discarding what came after. The sidebar exposes
+      <strong>Save</strong> and <strong>History</strong> (restore) controls, and the agent/MCP tools
+      <code>save_version</code>, <code>list_versions</code>, and <code>restore_version</code> drive the
+      same DAG.</p>
+    </section>
+
+    <section id="debug">
+      <h2>Debug Panel</h2>
+      <p>The sidebar includes a collapsible debug log panel — hidden by default, toggled open on demand,
+      and auto-revealed when an error occurs. It captures console output alongside agent and scene
+      events. A shadcn button labelled <strong>"Copy as agent prompt"</strong> copies the captured logs
+      already wrapped in a coding-agent debugging prompt, so a user hitting a frontend bug can hand a
+      ready-to-paste report straight to a coding agent.</p>
+      <p>The sidebar is styled with Tailwind v4 (preflight disabled) plus scoped shadcn tokens, all
+      contained within <code>chat/</code>.</p>
+    </section>
+
+    <section id="dev">
+      <h2>Local Development &amp; Deploy</h2>
+      <table>
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>npm run dev</code></td><td><code>wrangler dev</code> — local worker.</td></tr>
+          <tr><td><code>npm run build</code></td><td><code>build:chat</code> (Vite) then <code>build:canvas</code> (webpack) → <code>dist/</code>.</td></tr>
+          <tr><td><code>npm run build:chat</code> / <code>build:canvas</code></td><td>Build one bundle only.</td></tr>
+          <tr><td><code>npm run db:generate</code></td><td>Generate a Drizzle migration.</td></tr>
+          <tr><td><code>npm run db:migrate:local</code> / <code>:remote</code></td><td>Apply migrations to local / remote D1.</td></tr>
+          <tr><td><code>npm run types</code></td><td>Regenerate <code>worker-configuration.d.ts</code> (auto-generated — do not edit).</td></tr>
+          <tr><td><code>npm run deploy</code></td><td>build + <code>db:migrate:remote</code> + <code>wrangler deploy</code>.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <span class="label">Heads up</span>
+        <p>Local <code>wrangler dev</code> cannot read the remote Secrets Store secret, so the
+        <strong>live LLM only works on the deployed URL</strong>. The canvas, sidebar, and static routes
+        run locally, but to verify the agent end-to-end you must deploy.</p>
+      </div>
+    </section>
+
+    <section id="layout">
+      <h2>Project Layout</h2>
+      <pre><code>app/        app source: index.js (blueprint bus + react-planner mount + normalizeScene),
+            index.html, catalog/, components/
+chat/       React 19 assistant-ui sidebar (Vite) -> dist/chat/chat.{js,css}
+            src/App.tsx, components/, debug-log.ts, globals.css, styles.css
+worker/     Cloudflare Worker (TS)
+  index.ts            routes /mcp*, /agents/*, static assets (SPA fallback)
+  agent/blueprint.ts  BlueprintAgent (AIChatAgent DO) + tools
+  mcp/blueprint-mcp.ts BlueprintMCP (McpAgent DO) served at /mcp
+  ai/anthropic.ts     Claude via AI Gateway BYOK
+  blueprint/scene.ts  scene helpers (rooms, walls, holes, items)
+  db/                 Drizzle schema, versions, migrations
+src/        react-planner LIBRARY source (webpack alias: react-planner -> src/index)
+docs/       react-planner library docs (HOW_TO_CREATE_*) — upstream, leave as-is
+docs-site/  this technical docs site (served at /docs)
+archive/legacy-cloudflare/  prior superseded implementation — do not use</code></pre>
+    </section>
+
+    <section id="limitations">
+      <h2>Known Limitations</h2>
+      <ul>
+        <li><strong>Single-tenant, no auth.</strong> The agent/MCP instance name is hardcoded to
+        <code>"default"</code>.</li>
+        <li><strong>The <code>/mcp</code> endpoint is currently unauthenticated</strong> — anyone with
+        the URL can edit the blueprint.</li>
+        <li><strong>The live LLM does not work in local dev</strong> — local <code>wrangler dev</code>
+        cannot reach the remote Secrets Store. Test the model path on the deployed URL.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <a href="/">← Back to the app</a>
+      <a href="https://github.com/jmbish04/react-planner">GitHub repo</a>
+    </footer>
+  </main>
+</div>
+</body>
+</html>

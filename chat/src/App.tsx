@@ -106,6 +106,7 @@ export default function App() {
               onClick={() => { setShowHistory((v) => !v); if (!showHistory) refreshVersions(); }}
               title="Version history"
             >History</button>
+            <a className="sa-btn sa-btn--ghost" href="/docs/" target="_blank" rel="noreferrer" title="Technical documentation">Docs</a>
           </div>
         </header>
 

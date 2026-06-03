@@ -30,9 +30,10 @@
 .sa-status { margin: 2px 0 0; font-size: 11px; color: #8b90a0; }
 .sa-status--streaming, .sa-status--submitted { color: #7aa2ff; }
 
-.sa-actions { display: flex; gap: 6px; }
+.sa-actions { display: flex; gap: 6px; align-items: center; }
 .sa-btn {
   background: #1d2230; color: #cdd2df; border: none;
+  text-decoration: none; display: inline-flex; align-items: center;
   padding: 6px 11px; border-radius: 8px; font-size: 12px; font-weight: 550;
   cursor: pointer; transition: background 0.15s;
 }
