@@ -1,11 +1,7 @@
-import type { Config } from "drizzle-kit";
+import { defineConfig } from 'drizzle-kit';
 
-export default {
-  schema: "./src/db/schema.ts",
-  out: "./drizzle",
-  driver: "d1",
-  dbCredentials: {
-    wranglerConfigPath: "./wrangler.jsonc",
-    dbName: "colby_floorplan_db"
-  }
-} satisfies Config;
+export default defineConfig({
+  schema: './worker/db/schema.ts',
+  out: './worker/db/migrations',
+  dialect: 'sqlite',
+});

@@ -1,40 +1,33 @@
-.idea
-npm-debug.log
+# dependencies
 node_modules
-.DS_Store
-dist/*
-!dist/index.html
-.vscode
 
-# Cloudflare Workers
-.wrangler/
-.mf/
-wrangler.toml
+# build output
+dist
 
-# Build outputs
-lib/
-es/
-demo/dist/
-
-# Environment files
-.env
-.env.local
+# cloudflare / wrangler
+.wrangler
 .dev.vars
+worker-configuration.d.ts
 
-# Logs
+# react-planner library build artifacts (regenerated)
+# (lib/ and es/ are committed library builds; leave them tracked)
+
+# logs
 *.log
+npm-debug.log
 yarn-debug.log*
 yarn-error.log*
 
-# Yarn (keep install-state.gz, ignore cache and unplugged)
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.pnp.*
+# env
+.env
+.env.local
 
-# Testing
-coverage/
+# test / playwright artifacts
+test_output*.txt
+playwright-report
+test-results
 
-# Temporary files
-*.tmp
-*.temp
+# editor / OS
+.idea
+.vscode
+.DS_Store

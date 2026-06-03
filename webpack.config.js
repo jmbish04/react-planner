@@ -11,7 +11,7 @@ module.exports = (env, self) => {
     let config = {
         context: path.resolve(__dirname),
         entry: {
-            app: './src/index.js',
+            app: './app/index.js',
         },
         output: {
             path: path.join(__dirname, 'dist'),
@@ -27,7 +27,8 @@ module.exports = (env, self) => {
         resolve: {
             extensions: ['.js', '.jsx'],
             alias: {
-                'react-planner': path.join(__dirname, '../src/index')
+                // react-planner library source lives at repo root src/
+                'react-planner': path.join(__dirname, 'src/index')
             },
             modules: [
                 path.resolve(__dirname, 'node_modules'),
@@ -39,8 +40,8 @@ module.exports = (env, self) => {
                 test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
                 include: [
-                    path.resolve(__dirname, 'src'),
-                    path.resolve(__dirname, '../src')
+                    path.resolve(__dirname, 'app'),  // app source
+                    path.resolve(__dirname, 'src')   // react-planner library source
                 ],
                 use: [{
                     loader: 'babel-loader',
@@ -77,7 +78,7 @@ module.exports = (env, self) => {
         plugins: [
             new HtmlWebpackPlugin({
                 title: PAGE_TITLE,
-                template: './src/index.html',
+                template: './app/index.html',
                 filename: 'index.html',
                 inject: 'body'
             }),

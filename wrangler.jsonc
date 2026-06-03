@@ -1,48 +1,46 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "colby-architect-core",
-  "main": "src/backend/index.ts",
-  "compatibility_date": "2026-05-25",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "smart-architect",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "account_id": "b3304b14848de15c72c24a14b0cd187d",
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/agents/*"]
   },
   "durable_objects": {
     "bindings": [
-      {
-        "name": "FloorplanAgent",
-        "class_name": "FloorplanAgent"
-      }
+      { "name": "BlueprintAgent", "class_name": "BlueprintAgent" }
     ]
-  },
-  "d1_databases": {
-    "bindings": [
-      {
-        "binding": "DB",
-        "database_name": "colby_floorplan_db",
-        "database_id": "00000000-0000-0000-0000-000000000000",
-        "migrations_dir": "./drizzle"
-      }
-    ]
-  },
-  "ai": {
-    "binding": "AI"
-  },
-  "browser": {
-    "binding": "BROWSER"
-  },
-  "vars": {
-    "CLOUDFLARE_ACCOUNT_ID": "your_account_id_here"
   },
   "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["BlueprintAgent"] }
+  ],
+  "d1_databases": [
     {
-      "tag": "v1",
-      "new_sqlite_classes": [
-        "FloorplanAgent"
-      ]
+      "binding": "DB",
+      "database_name": "smart-architect-db",
+      "database_id": "c27b5ef2-de79-4771-8043-9c8d170fcef4",
+      "migrations_dir": "worker/db/migrations"
     }
-  ]
+  ],
+  "ai": { "binding": "AI" },
+  "secrets_store_secrets": [
+    {
+      "binding": "CLOUDFLARE_AI_GATEWAY_TOKEN",
+      "store_id": "8c42fa70938644e0a8a109744467375f",
+      "secret_name": "CLOUDFLARE_AI_GATEWAY_TOKEN"
+    }
+  ],
+  "vars": {
+    "CF_ACCOUNT_ID": "b3304b14848de15c72c24a14b0cd187d",
+    "AI_GATEWAY": "default-gateway",
+    "MODEL": "claude-sonnet-4-6"
+  },
+  "observability": {
+    "enabled": true
+  }
 }
