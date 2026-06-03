@@ -1,0 +1,98 @@
+.sa-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #0f1115;
+  color: #e7e9ee;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.sa-sidebar * { box-sizing: border-box; }
+
+.sa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #161922, #0f1115);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+}
+.sa-title { display: flex; align-items: center; gap: 10px; }
+.sa-logo {
+  font-size: 22px; line-height: 1;
+  width: 34px; height: 34px; display: grid; place-items: center;
+  background: #1d2230; border-radius: 9px; color: #7aa2ff;
+}
+.sa-header h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: 0.2px; }
+.sa-status { margin: 2px 0 0; font-size: 11px; color: #8b90a0; }
+.sa-status--streaming, .sa-status--submitted { color: #7aa2ff; }
+
+.sa-actions { display: flex; gap: 6px; }
+.sa-btn {
+  background: #1d2230; color: #cdd2df; border: none;
+  padding: 6px 11px; border-radius: 8px; font-size: 12px; font-weight: 550;
+  cursor: pointer; transition: background 0.15s;
+}
+.sa-btn:hover:not(:disabled) { background: #283044; }
+.sa-btn:disabled { opacity: 0.5; cursor: default; }
+.sa-btn--ghost { background: transparent; box-shadow: inset 0 0 0 1px #2a3142; }
+
+.sa-history {
+  max-height: 220px; overflow-y: auto; padding: 8px 12px;
+  background: #0c0e13; box-shadow: inset 0 -1px 0 rgba(255,255,255,0.06);
+}
+.sa-version {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; margin-bottom: 6px; background: #14171f; border-radius: 8px;
+}
+.sa-version-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sa-version-label { font-size: 13px; font-weight: 550; }
+.sa-version-time { font-size: 10px; color: #7a8092; }
+.sa-empty { color: #7a8092; font-size: 12px; text-align: center; padding: 12px; }
+
+.sa-thread { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.sa-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+.sa-welcome { color: #aab0c0; line-height: 1.5; }
+.sa-suggestions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.sa-suggestion {
+  text-align: left; background: #14171f; color: #9aa1b2; border: none;
+  padding: 9px 12px; border-radius: 9px; font-size: 13px; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.sa-suggestion:hover { background: #1d2230; color: #cdd2df; }
+
+.sa-msg {
+  max-width: 92%; padding: 10px 13px; border-radius: 12px;
+  line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sa-msg--user { align-self: flex-end; background: #2b59ff; color: white; border-bottom-right-radius: 4px; }
+.sa-msg--assistant { align-self: flex-start; background: #181c25; border-bottom-left-radius: 4px; }
+
+.sa-tool {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; color: #9aa1b2; background: #0f1218;
+  padding: 3px 8px; border-radius: 999px; width: fit-content; font-family: ui-monospace, monospace;
+}
+.sa-tool-dot { width: 7px; height: 7px; border-radius: 50%; background: #f0a93b; }
+.sa-tool-dot[data-done='true'] { background: #44d07b; }
+
+.sa-typing { align-self: flex-start; color: #7a8092; font-size: 13px; font-style: italic; }
+
+.sa-input { display: flex; gap: 8px; align-items: flex-end; padding: 12px; background: #0c0e13; box-shadow: 0 -1px 0 rgba(255,255,255,0.06); }
+.sa-input-field {
+  flex: 1; background: #181c25; border: none; outline: none; color: #e7e9ee;
+  padding: 11px 13px; border-radius: 10px; font-size: 14px; resize: none;
+  font-family: inherit; line-height: 1.4; max-height: 140px; min-height: 22px;
+}
+.sa-input-field::placeholder { color: #6b7081; }
+.sa-send {
+  background: #2b59ff; color: white; border: none; padding: 11px 18px;
+  border-radius: 10px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+}
+.sa-send:disabled { opacity: 0.45; cursor: default; }
+.sa-send:hover:not(:disabled) { background: #3d68ff; }

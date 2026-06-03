@@ -1,0 +1,13 @@
+node_modules
+dist
+.wrangler
+.dev.vars
+worker-configuration.d.ts
+.DS_Store
+chat/node_modules
+chat/dist
+
+# test / playwright artifacts
+test_output*.txt
+playwright-report
+test-results
