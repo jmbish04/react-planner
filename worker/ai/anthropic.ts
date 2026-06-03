@@ -1,9 +1,11 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
 
 // Claude via Cloudflare AI Gateway with BYOK.
-// The gateway holds the real provider key; we authenticate to the gateway with
-// a token pulled from Secrets Store. Swap models/providers by changing MODEL /
-// the gateway config — no code change needed.
+//
+// BYOK contract (confirmed against the dashboard setup): the AI Gateway token
+// is passed as the provider apiKey (sent as x-api-key). The gateway recognizes
+// that token, authenticates the request, and swaps in the real Anthropic key it
+// has stored. There is NO separate cf-aig-authorization header in this mode.
 export async function createModel(env: Env) {
   const account = env.CF_ACCOUNT_ID;
   const gateway = env.AI_GATEWAY || 'default-gateway';
@@ -11,16 +13,8 @@ export async function createModel(env: Env) {
 
   const token = await env.CLOUDFLARE_AI_GATEWAY_TOKEN.get();
 
-  const anthropic = createAnthropic({
-    baseURL,
-    // BYOK: the real Anthropic key is injected by AI Gateway. A placeholder keeps
-    // the SDK happy; the gateway overrides it when stored keys are configured.
-    apiKey: 'byok-via-ai-gateway',
-    headers: {
-      'cf-aig-authorization': `Bearer ${token}`,
-    },
-  });
+  const anthropic = createAnthropic({ baseURL, apiKey: token });
 
-  const modelId = env.MODEL || 'claude-sonnet-4-6';
+  const modelId = env.MODEL || 'claude-opus-4-8';
   return anthropic(modelId);
 }
