@@ -16,22 +16,25 @@
             font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
         #layout {
-            display: flex;
+            position: relative;
             height: 100vh;
             width: 100vw;
             overflow: hidden;
         }
+        /* react-planner canvas fills the whole screen */
         #canvas {
-            flex: 1 1 auto;
-            position: relative;
+            position: absolute;
+            inset: 0;
             height: 100%;
-            min-width: 0;
+            width: 100%;
         }
+        /* sidebar bundle only holds the floating launcher button (bottom-right);
+           the assistant-ui modal itself portals to <body> and hovers over the canvas */
         #sidebar {
-            flex: 0 0 400px;
-            height: 100%;
-            min-width: 0;
-            display: flex;
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 2000;
         }
     </style>
     <script>

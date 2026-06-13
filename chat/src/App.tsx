@@ -3,6 +3,7 @@ import { useAgent } from 'agents/react';
 import { useAgentChat } from '@cloudflare/ai-chat/react';
 import {
   AssistantRuntimeProvider,
+  AssistantModalPrimitive,
   ThreadPrimitive,
   MessagePrimitive,
   ComposerPrimitive,
@@ -107,7 +108,20 @@ export default function App() {
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <div className="sa-sidebar">
+      <AssistantModalPrimitive.Root>
+        <AssistantModalPrimitive.Anchor className="sa-fab-anchor">
+          <AssistantModalPrimitive.Trigger className="sa-fab" aria-label="Open Smart Architect">
+            <span className="sa-fab-icon">◳</span>
+          </AssistantModalPrimitive.Trigger>
+        </AssistantModalPrimitive.Anchor>
+
+        <AssistantModalPrimitive.Content
+          className="sa-sidebar sa-modal"
+          side="top"
+          align="end"
+          sideOffset={14}
+          onInteractOutside={(e: Event) => e.preventDefault()}
+        >
         <header className="sa-header">
           <div className="sa-title">
             <span className="sa-logo">◳</span>
@@ -181,7 +195,8 @@ export default function App() {
         </ThreadPrimitive.Root>
 
         <DebugPanel />
-      </div>
+        </AssistantModalPrimitive.Content>
+      </AssistantModalPrimitive.Root>
     </AssistantRuntimeProvider>
   );
 }
