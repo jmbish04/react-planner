@@ -17,7 +17,9 @@ export interface BlueprintState {
 const CATALOG = {
   lines: ['wall'],
   holes: ['door', 'double door', 'sliding door', 'panic door', 'double panic door', 'gate', 'window', 'sash window', 'window-curtain', 'venetian-blind-window'],
-  items: ['sofa', 'armchairs', 'table', 'desk', 'chairdesk', 'sedia', 'bench', 'bookcase', 'wardrobe', 'fridge', 'kitchen', 'sink', 'tv', 'monitor_pc', 'radiator-old-style', 'conditioner', 'round column', 'square column', 'cube', 'coat-hook', 'hanger', 'trash', 'image', 'text'],
+  items: ['sofa', 'armchairs', 'table', 'desk', 'chairdesk', 'sedia', 'bench', 'bookcase', 'wardrobe', 'fridge', 'kitchen', 'sink', 'tv', 'monitor_pc', 'radiator-old-style', 'conditioner', 'round column', 'square column', 'cube', 'coat-hook', 'hanger', 'trash', 'image', 'text',
+    // Remodel components
+    'calacatta-viola-countertop', 'calacatta-viola-backsplash', 'walnut-base-cabinet', 'track-light-black', 'wall-sconce', 'closet-stacked'],
   areas: ['area'],
 };
 
@@ -33,6 +35,14 @@ CATALOG VOCABULARY (use these exact type strings)
 - wall lines: ${CATALOG.lines.join(', ')}
 - holes (placed ON a wall): ${CATALOG.holes.join(', ')}
 - items (furniture/fixtures): ${CATALOG.items.join(', ')}
+
+REMODEL COMPONENTS (this home's finishes)
+- calacatta-viola-countertop: Calacatta Viola marble counter slab (sits at altitude 90cm). Use for kitchen counters.
+- calacatta-viola-backsplash: matching marble half-height backsplash panel (place flush to the wall behind a counter, rotate to match the wall).
+- walnut-base-cabinet: walnut LOWER cabinet (90cm tall). This kitchen has lowers only, NO uppers. Line cabinets along a wall and lay a countertop on top.
+- track-light-black: black recessed ceiling track lighting (mood lighting).
+- wall-sconce: decorative wall sconce (warm accent light, mounts ~180cm up a wall).
+- closet-stacked: floor-to-ceiling stacked closet boxes (doubled hanging space).
 
 WORKFLOW
 1. Establish exterior walls first (use new_room for a rectangular footprint, or add_wall for custom shapes).

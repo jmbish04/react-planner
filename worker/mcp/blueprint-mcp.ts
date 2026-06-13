@@ -14,6 +14,9 @@ const ITEM_TYPES = [
   'wardrobe', 'fridge', 'kitchen', 'sink', 'tv', 'monitor_pc', 'radiator-old-style',
   'conditioner', 'round column', 'square column', 'cube', 'coat-hook', 'hanger',
   'trash', 'image', 'text',
+  // Remodel components (this home's finishes)
+  'calacatta-viola-countertop', 'calacatta-viola-backsplash', 'walnut-base-cabinet',
+  'track-light-black', 'wall-sconce', 'closet-stacked',
 ] as const;
 
 const text = (t: string) => ({ content: [{ type: 'text' as const, text: t }] });
