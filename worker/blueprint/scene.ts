@@ -61,6 +61,37 @@ function getLayer(scene: Scene, layerId?: string): Layer {
   return layer;
 }
 
+/**
+ * Create a new layer (e.g. one per building level) and select it. Used by the
+ * floorplan-image tracing flow, where each uploaded level becomes its own layer
+ * stacked by altitude.
+ */
+export function addLayer(scene: Scene, args: { name: string; altitude?: number }): { scene: Scene; layerId: string } {
+  const next = clone(scene);
+  const layerId = uid('layer');
+  const order = Object.keys(next.layers).length;
+  next.layers[layerId] = {
+    id: layerId,
+    name: args.name,
+    altitude: args.altitude ?? order * 300,
+    order,
+    opacity: 1,
+    visible: true,
+    vertices: {}, lines: {}, holes: {}, areas: {}, items: {},
+    selected: { vertices: [], lines: [], holes: [], items: [], areas: [] },
+  } as Layer;
+  next.selectedLayer = layerId;
+  return { scene: next, layerId };
+}
+
+/** Rename an existing layer (e.g. label the default layer "lower level"). */
+export function renameLayer(scene: Scene, args: { layerId?: string; name: string }): Scene {
+  const next = clone(scene);
+  const layer = getLayer(next, args.layerId);
+  layer.name = args.name;
+  return next;
+}
+
 function findOrCreateVertex(layer: Layer, x: number, y: number): string {
   for (const v of Object.values(layer.vertices)) {
     if (Math.abs(v.x - x) <= VERTEX_EPSILON && Math.abs(v.y - y) <= VERTEX_EPSILON) return v.id;

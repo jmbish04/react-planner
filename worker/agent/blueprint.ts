@@ -4,7 +4,7 @@ import { streamText, convertToModelMessages, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
 import { createModel } from '../ai/anthropic';
 import {
-  emptyScene, addRoom, addWall, addHole, addItem, removeElement, summarize, type Scene,
+  emptyScene, addRoom, addWall, addHole, addItem, removeElement, addLayer, renameLayer, summarize, type Scene,
 } from '../blueprint/scene';
 import { saveVersion, listVersions, getVersion } from '../db/versions';
 
@@ -51,6 +51,13 @@ WORKFLOW
 4. Place furniture/fixtures with add_item.
 - For big restructures you may call set_blueprint with a complete scene; for incremental edits prefer the granular tools.
 - Inspect current geometry with get_blueprint when you need exact ids/coordinates.
+
+TRACING AN UPLOADED FLOORPLAN IMAGE
+When the user sends a floorplan image with a level label (e.g. "Lower Level"):
+1. Determine the layer: for the first/ground level, rename_layer to the label. For each additional level, call create_layer with the label (altitude = level index * 300cm) so levels stack.
+2. Study the image: identify the exterior outline, interior partition walls, and door/window openings. Infer real dimensions from any printed measurements or a scale bar; otherwise assume a sensible scale so the largest dimension fits the canvas.
+3. Reproduce the geometry with add_wall (exterior + interior), reusing shared corner coordinates so walls join. Add doors/windows with add_hole on the matching wall, and label rooms with text items if helpful.
+4. Briefly report what you traced (rooms, approximate dimensions) and ask the user to confirm or correct the scale.
 
 After making changes, reply with a short, friendly summary of what you changed. Do not dump raw JSON at the user.
 
@@ -205,6 +212,25 @@ export class BlueprintAgent extends AIChatAgent<Env, BlueprintState> {
         execute: async ({ id }) => {
           self.commit(removeElement(self.state.scene, { id }));
           return { ok: true, summary: `Removed ${id}` };
+        },
+      }),
+
+      create_layer: tool({
+        description: 'Create a new building level/layer (e.g. "Upper Level") and make it the active layer. Subsequent walls/rooms go onto it. Use one layer per uploaded floorplan level.',
+        inputSchema: z.object({ name: z.string(), altitude: z.number().optional().describe('Floor altitude in cm; defaults to 300 per level above ground.') }),
+        execute: async (args) => {
+          const { scene, layerId } = addLayer(self.state.scene, args);
+          self.commit(scene);
+          return { ok: true, layerId, summary: `Created layer "${args.name}" (now active).` };
+        },
+      }),
+
+      rename_layer: tool({
+        description: 'Rename the active (or a specific) layer — e.g. label the default layer "Lower Level".',
+        inputSchema: z.object({ name: z.string(), layerId: z.string().optional() }),
+        execute: async (args) => {
+          self.commit(renameLayer(self.state.scene, args));
+          return { ok: true, summary: `Renamed layer to "${args.name}".` };
         },
       }),
 

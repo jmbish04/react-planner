@@ -98,6 +98,19 @@
 .sa-send:disabled { opacity: 0.45; cursor: default; }
 .sa-send:hover:not(:disabled) { background: #3d68ff; }
 
+/* Floorplan upload / tracing panel */
+.sa-upload { padding: 12px 14px; background: #0c0e13; box-shadow: inset 0 -1px 0 rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 10px; }
+.sa-upload-hint { margin: 0; font-size: 12px; color: #8b90a0; line-height: 1.45; }
+.sa-upload-file { font-size: 12px; color: #aab0c0; }
+.sa-upload-pending { display: flex; align-items: center; gap: 8px; }
+.sa-upload-label { flex: 1; background: #181c25; border: none; outline: none; color: #e7e9ee; padding: 8px 10px; border-radius: 8px; font-size: 13px; }
+.sa-upload-label::placeholder { color: #6b7081; }
+.sa-upload-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px rgba(255,255,255,0.08); }
+.sa-upload-queue { display: flex; flex-direction: column; gap: 6px; }
+.sa-upload-item { display: flex; align-items: center; gap: 8px; background: #14171f; padding: 6px; border-radius: 8px; }
+.sa-upload-itemlabel { flex: 1; font-size: 13px; color: #cdd2df; }
+.sa-upload-submit { width: 100%; padding: 10px; }
+
 /* Debug panel */
 .sa-debug { border-top: 1px solid rgba(255,255,255,0.06); background: #0a0c10; }
 .sa-debug-toggle {

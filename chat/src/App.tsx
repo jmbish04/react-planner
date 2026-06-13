@@ -10,6 +10,7 @@ import {
 import { useAISDKRuntime } from '@assistant-ui/react-ai-sdk';
 import { onPlannerReady, applyScene, subscribeSceneChange, type Scene } from './planner';
 import { DebugPanel } from './components/DebugPanel';
+import { FloorplanUpload, type FloorLevel } from './components/FloorplanUpload';
 import { pushLog } from './debug-log';
 
 interface BlueprintState {
@@ -29,6 +30,7 @@ export default function App() {
   const [plannerReady, setPlannerReady] = useState(false);
   const [versions, setVersions] = useState<VersionMeta[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
   const [saving, setSaving] = useState(false);
   const lastSceneJSON = useRef<string>('');
 
@@ -86,6 +88,23 @@ export default function App() {
     setShowHistory(false);
   }
 
+  // Send the queued floorplan level images to the agent (Claude vision) as one
+  // multimodal message to trace + replicate, one layer per level.
+  function onTraceFloorplans(levels: FloorLevel[]) {
+    const list = levels.map((l, i) => `${i + 1}. "${l.label}"`).join(', ');
+    const text =
+      `I'm uploading ${levels.length} floorplan image(s), one per building level, in this order: ${list}. ` +
+      `Trace each image and replicate its exterior + interior walls, doors, and windows on the canvas. ` +
+      `Put each level on its own layer (rename the active layer for the first level; create_layer for each subsequent level). ` +
+      `Infer scale from any printed dimensions; otherwise choose a sensible scale so it fits the canvas. ` +
+      `When done, summarize what you traced and ask me to confirm the scale.`;
+    const parts: any[] = [{ type: 'text', text }];
+    for (const l of levels) parts.push({ type: 'file', mediaType: l.mediaType, url: l.dataUrl, filename: l.name });
+    pushLog('info', 'trace', `Submitting ${levels.length} floorplan level(s) to the agent: ${list}`);
+    (chat as any).sendMessage({ role: 'user', parts });
+    setShowUpload(false);
+  }
+
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <div className="sa-sidebar">
@@ -106,9 +125,16 @@ export default function App() {
               onClick={() => { setShowHistory((v) => !v); if (!showHistory) refreshVersions(); }}
               title="Version history"
             >History</button>
+            <button
+              className="sa-btn"
+              onClick={() => setShowUpload((v) => !v)}
+              title="Trace a floorplan image"
+            >Trace</button>
             <a className="sa-btn sa-btn--ghost" href="/docs/" target="_blank" rel="noreferrer" title="Technical documentation">Docs</a>
           </div>
         </header>
+
+        {showUpload && <FloorplanUpload onSubmit={onTraceFloorplans} />}
 
         {showHistory && (
           <div className="sa-history">

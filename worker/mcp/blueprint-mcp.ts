@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { McpAgent } from 'agents/mcp';
 import { getAgentByName } from 'agents';
 import { z } from 'zod';
-import { addRoom, addWall, addHole, addItem, removeElement, emptyScene, summarize, type Scene } from '../blueprint/scene';
+import { addRoom, addWall, addHole, addItem, removeElement, addLayer, renameLayer, emptyScene, summarize, type Scene } from '../blueprint/scene';
 
 const HOLE_TYPES = [
   'door', 'double door', 'sliding door', 'panic door', 'double panic door',
@@ -106,6 +106,25 @@ export class BlueprintMCP extends McpAgent<Env> {
       async ({ id }) => {
         await this.push(removeElement(await this.scene(), { id }));
         return text(`Removed ${id}`);
+      }
+    );
+
+    this.server.registerTool(
+      'create_layer',
+      { description: 'Create a new building level/layer and make it active (subsequent walls/rooms go onto it). One layer per floorplan level.', inputSchema: { name: z.string(), altitude: z.number().optional() } },
+      async ({ name, altitude }) => {
+        const { scene, layerId } = addLayer(await this.scene(), { name, altitude });
+        await this.push(scene);
+        return text(`Created layer "${name}" (${layerId}), now active.`);
+      }
+    );
+
+    this.server.registerTool(
+      'rename_layer',
+      { description: 'Rename the active (or specified) layer.', inputSchema: { name: z.string(), layerId: z.string().optional() } },
+      async ({ name, layerId }) => {
+        await this.push(renameLayer(await this.scene(), { name, layerId }));
+        return text(`Renamed layer to "${name}".`);
       }
     );
 
