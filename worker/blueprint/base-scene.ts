@@ -29,7 +29,7 @@ const ROOMS: RoomDef[] = [
   { id: 'lower_entryway', name: 'Entryway', level: 'lower', fx1: 0, fy1: 0, fx2: 5.67, fy2: 11.42, fill: '#EFEAE0' },
   { id: 'lower_main_entry', name: 'Main Entry', level: 'lower', fx1: 0, fy1: 11.42, fx2: 6.83, fy2: 16.5, fill: '#EFEAE0' },
   { id: 'lower_garage', name: 'Garage', level: 'lower', fx1: 6.83, fy1: 0, fx2: 25, fy2: 21.75, fill: '#E2E2E2' },
-  { id: 'lower_mech', name: 'Mech', level: 'lower', fx1: 11.5, fy1: 16.5, fx2: 17, fy2: 19.5, fill: '#E6E6E6' },
+  { id: 'lower_mech', name: 'Mech', level: 'lower', fx1: 16.5, fy1: 21.75, fx2: 20.5, fy2: 24.5, fill: '#E6E6E6' },
   { id: 'lower_laundry', name: 'Laundry', level: 'lower', fx1: 8.0, fy1: 21.0, fx2: 11.75, fy2: 26.0, fill: '#E6EEF2' },
   { id: 'lower_storage', name: 'Storage', level: 'lower', fx1: 16.5, fy1: 24.0, fx2: 22.0, fy2: 27.0, fill: '#E9E6DF' },
   { id: 'lower_bath', name: 'Bath', level: 'lower', fx1: 16.5, fy1: 27.0, fx2: 25, fy2: 33.0, fill: '#E6EEF2' },
@@ -42,7 +42,7 @@ const ROOMS: RoomDef[] = [
   { id: 'upper_breakfast', name: 'Breakfast Nook', level: 'upper', fx1: 0, fy1: 0, fx2: 8.75, fy2: 5.42, fill: '#F1EDE3' },
   { id: 'upper_kitchen', name: 'Kitchen', level: 'upper', fx1: 0, fy1: 5.42, fx2: 8.75, fy2: 18.25, fill: '#F1EDE3' },
   { id: 'upper_living', name: 'Living Room', level: 'upper', fx1: 8.75, fy1: 0, fx2: 25, fy2: 14.0, fill: '#F3EEE4' },
-  { id: 'upper_dining', name: 'Dining Room', level: 'upper', fx1: 8.75, fy1: 14.0, fx2: 25, fy2: 24.83, fill: '#F3EEE4' },
+  { id: 'upper_dining', name: 'Dining Room', level: 'upper', fx1: 16.0, fy1: 14.0, fx2: 25, fy2: 24.83, fill: '#F3EEE4' },
   { id: 'upper_jason', name: "Jason's Office", level: 'upper', fx1: 0, fy1: 18.25, fx2: 11.83, fy2: 28.83, fill: '#EFEEE9' },
   { id: 'upper_hallway', name: 'Hallway', level: 'upper', fx1: 11.83, fy1: 16.5, fx2: 16.0, fy2: 44.42, fill: '#F1EEE8' },
   { id: 'upper_primary_bath', name: 'Primary Bath', level: 'upper', fx1: 16.0, fy1: 33.17, fx2: 24.33, fy2: 44.42, fill: '#E6EEF2' },
@@ -194,8 +194,10 @@ export function baseScene(): Scene {
   lo.door(byId('lower_bedroom'), 'S', 0.15, 'door');          // bedroom door
   lo.door(byId('lower_bath'), 'W', 0.5, 'door');              // bath door
   lo.door(byId('lower_laundry'), 'S', 0.5, 'door');           // laundry
-  // Lower stair (first flight, UP) in the central spine
-  const stairCx = toX(13.9), stairCy = toY(21.5);
+  // Lower stair (first flight, UP) in the central spine, sitting ABOVE the garage
+  // rear wall (y≈663) so it doesn't fall inside the garage. Storage is to its
+  // right, Laundry to its left.
+  const stairCx = toX(13.9), stairCy = 820;
   lo.addItem('straight-stair', stairCx, stairCy, 0, {
     width: { length: 114, unit: 'cm' }, run: { length: 305, unit: 'cm' }, direction: 'up', floorHeight: { length: 145, unit: 'cm' },
   });

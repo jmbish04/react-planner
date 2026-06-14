@@ -22,6 +22,7 @@
         "@ai-sdk/anthropic": "^3.0.81",
         "@cloudflare/ai-chat": "^0.7.2",
         "@modelcontextprotocol/sdk": "^1.29.0",
+        "@resvg/resvg-wasm": "^2.6.2",
         "agents": "^0.13.3",
         "ai": "^6.0.193",
         "area-polygon": "^1.0.1",

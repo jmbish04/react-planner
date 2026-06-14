@@ -3,6 +3,8 @@ import { McpAgent } from 'agents/mcp';
 import { getAgentByName } from 'agents';
 import { z } from 'zod';
 import { addRoom, addWall, addHole, addItem, removeElement, addLayer, renameLayer, setAreaFloor, emptyScene, summarize, type Scene } from '../blueprint/scene';
+import { renderSceneSvg } from '../blueprint/render-svg';
+import { svgToPng, toBase64 } from '../blueprint/render-png';
 
 const HOLE_TYPES = [
   'door', 'double door', 'sliding door', 'panic door', 'double panic door',
@@ -48,6 +50,30 @@ export class BlueprintMCP extends McpAgent<Env> {
       'get_blueprint',
       { description: 'Read the current floorplan: walls, doors/windows, and items with their ids and coordinates (cm).', inputSchema: {} },
       async () => text(summarize(await this.scene()))
+    );
+
+    this.server.registerTool(
+      'render_floorplan',
+      {
+        description: 'Render the current blueprint to a top-down PNG image so you can SEE it (rooms, walls, doors/windows, stairs). Pass a level ("lower"/"upper") or "both". Use this to visually verify changes.',
+        inputSchema: { level: z.enum(['lower', 'upper', 'both']).optional() },
+      },
+      async ({ level }) => {
+        const scene = await this.scene();
+        const ids = level === 'both'
+          ? Object.keys(scene.layers)
+          : [level === 'upper' ? 'upper_level' : level === 'lower' ? 'lower_level' : (scene.selectedLayer || Object.keys(scene.layers)[0])];
+        const content: any[] = [];
+        for (const id of ids) {
+          if (!scene.layers[id]) continue;
+          const { svg, title } = renderSceneSvg(scene, id);
+          const png = await svgToPng(svg);
+          content.push({ type: 'text', text: `${title} (${id})` });
+          content.push({ type: 'image', data: toBase64(png), mimeType: 'image/png' });
+        }
+        if (!content.length) content.push({ type: 'text', text: 'No layer found to render.' });
+        return { content };
+      }
     );
 
     this.server.registerTool(
