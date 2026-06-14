@@ -53,32 +53,31 @@ export default {
     const stroke = element.selected ? ReactPlannerSharedStyle.MESH_SELECTED : '#3a3a3a';
     const treadStroke = element.selected ? ReactPlannerSharedStyle.MESH_SELECTED : '#6b6b6b';
 
+    // Landing at the REAR (high local y) so it sits by the wet core; flights run
+    // up the front portion [0, run] toward the landing [run, D].
     const nPer = Math.max(3, Math.round(run / 28)); // ~28cm tread going
     const treads = [];
     for (let i = 1; i < nPer; i++) {
-      const y = land + (run * i) / nPer;
-      // flight 1 (left)
-      treads.push(<line key={`a${i}`} x1={0} y1={y} x2={fw} y2={y} style={{ stroke: treadStroke, strokeWidth: 1.5 }} />);
-      // flight 2 (right)
-      treads.push(<line key={`b${i}`} x1={fw + gap} y1={y} x2={W} y2={y} style={{ stroke: treadStroke, strokeWidth: 1.5 }} />);
+      const y = (run * i) / nPer;
+      treads.push(<line key={`a${i}`} x1={0} y1={y} x2={fw} y2={y} style={{ stroke: treadStroke, strokeWidth: 1.5 }} />);       // flight 1 (left)
+      treads.push(<line key={`b${i}`} x1={fw + gap} y1={y} x2={W} y2={y} style={{ stroke: treadStroke, strokeWidth: 1.5 }} />); // flight 2 (right)
     }
-    // UP arrow up the left flight (toward the landing at small Y)
-    const ax = fw / 2;
+    const ax = fw / 2; // up the left flight toward the landing (high y / rear)
     return (
       <g transform={`translate(${-W / 2}, ${-D / 2})`}>
-        {/* pony-wall ring (half-height) drawn as a thick open outline */}
-        <rect x={0} y={0} width={W} height={D} style={{ fill: 'rgba(217,212,202,0.35)', stroke, strokeWidth: 7 }} />
+        {/* pony-wall ring (half-height) — open footprint, thin tint just to read the well */}
+        <rect x={0} y={0} width={W} height={D} style={{ fill: 'none', stroke, strokeWidth: 7 }} />
         <rect x={5} y={5} width={W - 10} height={D - 10} style={{ fill: 'none', stroke, strokeWidth: 1 }} />
-        {/* landing */}
-        <rect x={0} y={0} width={W} height={land} style={{ fill: 'rgba(150,150,150,0.18)', stroke: treadStroke, strokeWidth: 1 }} />
-        {/* well gap between flights */}
-        <rect x={fw} y={land} width={gap} height={run} style={{ fill: 'rgba(120,120,120,0.10)', stroke: 'none' }} />
+        {/* landing at the rear */}
+        <rect x={0} y={run} width={W} height={land} style={{ fill: 'rgba(150,150,150,0.16)', stroke: treadStroke, strokeWidth: 1 }} />
+        {/* well gap between the two flights */}
+        <rect x={fw} y={0} width={gap} height={run} style={{ fill: 'rgba(120,120,120,0.08)', stroke: 'none' }} />
         {treads}
-        {/* UP arrow */}
-        <line x1={ax} y1={D - 12} x2={ax} y2={land + 14} style={{ stroke: '#2b59ff', strokeWidth: 2 }} />
-        <line x1={ax} y1={land + 14} x2={ax - 7} y2={land + 26} style={{ stroke: '#2b59ff', strokeWidth: 2 }} />
-        <line x1={ax} y1={land + 14} x2={ax + 7} y2={land + 26} style={{ stroke: '#2b59ff', strokeWidth: 2 }} />
-        <text x={ax + 10} y={D - 16} style={{ fontSize: '18px', fill: '#2b59ff' }} transform={`translate(${ax + 10}, ${D - 16}) scale(1,-1) translate(${-(ax + 10)}, ${-(D - 16)})`}>UP</text>
+        {/* UP arrow pointing toward the landing (rear) */}
+        <line x1={ax} y1={12} x2={ax} y2={run - 14} style={{ stroke: '#2b59ff', strokeWidth: 2 }} />
+        <line x1={ax} y1={run - 14} x2={ax - 7} y2={run - 26} style={{ stroke: '#2b59ff', strokeWidth: 2 }} />
+        <line x1={ax} y1={run - 14} x2={ax + 7} y2={run - 26} style={{ stroke: '#2b59ff', strokeWidth: 2 }} />
+        <text x={ax + 10} y={16} style={{ fontSize: '18px', fill: '#2b59ff' }} transform={`translate(${ax + 10}, ${16}) scale(1,-1) translate(${-(ax + 10)}, ${-16})`}>UP</text>
       </g>
     );
   },
@@ -108,16 +107,16 @@ export default {
       }
     };
 
-    // local: x in [-W/2,W/2], z in [-D/2,D/2]. Landing at the back (small z).
-    const zFront = D / 2, zLandBack = -D / 2, zLandFront = -D / 2 + land;
+    // local: x in [-W/2,W/2], z in [-D/2,D/2]. Landing at the REAR (high z), matching 2D.
+    const zFront = -D / 2, zLandFront = D / 2 - land, zLandBack = D / 2;
     const xLeft = -W / 2 + fw / 2, xRight = W / 2 - fw / 2;
-    // flight 1: left, from floor (front) up to landing height (back)
+    // flight 1: left, from floor (front) up to landing height (rear)
     buildFlight(xLeft, zFront, zLandFront, 0, half);
-    // landing platform
+    // landing platform at the rear
     const landing = new Mesh(new BoxGeometry(W, 5, land), wood);
     landing.position.set(0, half, (zLandBack + zLandFront) / 2);
     group.add(landing);
-    // flight 2: right, from landing height (back) up to full floor (front)
+    // flight 2: right, from landing (rear) up to full floor (toward front)
     buildFlight(xRight, zLandFront, zFront, half, fh);
 
     // pony walls: 4 thin tall slabs around the perimeter, half-height

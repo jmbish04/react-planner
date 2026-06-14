@@ -199,7 +199,7 @@ function relativePosition(r: CmRect, lotW: number, lotH: number): string {
 
 function roomContext(rects: CmRect[], lotW: number, lotH: number): string {
   const byLevel = (lvl: 'lower' | 'upper') => rects.filter((r) => r.level === lvl)
-    .map((r) => `  - ${r.name} [${r.id}]: ${relativePosition(r, lotW, lotH)}; bbox ${r.x1},${r.yTop}–${r.x2},${r.yBot} cm (${Math.round((r.x2 - r.x1))}×${Math.round((r.yBot - r.yTop))})`)
+    .map((r) => `  - ${r.name} [${r.id}]: ${relativePosition(r, lotW, lotH)}; bbox ${r.x1},${r.yBot}–${r.x2},${r.yTop} cm (${Math.round(r.x2 - r.x1)}×${Math.round(r.yTop - r.yBot)})`)
     .join('\n');
   return [
     'CORE BASE — San Francisco row house (this home). Two stacked levels, same footprint; the upper level cantilevers ~183cm past the lower at the rear.',
@@ -244,16 +244,26 @@ export function baseScene(): Scene {
   lo.addHoleAt('h', toY(0), toX(15.9), 'gate');                // garage door (wide front opening)
   lo.addHoleAt('h', toY(52), toX(6.2), 'sliding door');        // family room -> patio slider
   lo.addHoleAt('h', toY(52), toX(18.8), 'sliding door');       // lower bedroom -> patio slider
-  // Interior doors off the hallway
-  lo.addHoleAt('v', toX(10), toY(33.7), 'door');               // bathroom
-  lo.addHoleAt('h', toY(37.83), toX(18.5), 'door');            // lower bedroom from hallway side
-  // Switchback stair sits in the central hall near the wet core; bath wall on the right of ascent.
-  const stairCx = toX(16.0), stairCy = toY(24.5);
+  // Interior doors (curated; clean shared walls)
+  lo.addHoleAt('v', toX(10), toY(33.7), 'door');               // hallway -> bathroom
+  lo.addHoleAt('h', toY(37.83), toX(18.5), 'door');            // lower bedroom entry
+  lo.addHoleAt('h', toY(11.42), toX(2.8), 'door');             // entryway -> main entry lobby
+  lo.addHoleAt('v', toX(6.83), toY(13.5), 'door');             // main entry lobby -> garage
+  lo.addHoleAt('h', toY(28.58), toX(2.5), 'door');             // wet bar -> family room
+  lo.addHoleAt('v', toX(10), toY(25.5), 'door');               // laundry -> hallway
+  // Switchback stair in the central hall, footprint kept inside the Lower Hallway
+  // (x305–762, y503–907) and pushed toward the rear wet core (bath/storage) so the
+  // landing lands by the wet-core wall and the under-stair Storage sits behind it.
+  const SF = { flightWidth: 110, flightRun: 274, landingDepth: 110, wellGap: 24 };
+  const stairW = 2 * SF.flightWidth + SF.wellGap; // 244
+  const stairD = SF.flightRun + SF.landingDepth;  // 384
+  const stairCx = 430;  // left-of-center, against the bath/storage wet core (x305–549)
+  const stairCy = 705;  // footprint y513–897, fully inside the hallway, landing toward the rear
   lo.addItem('switchback-stair', stairCx, stairCy, 0, {
-    flightWidth: { length: 110, unit: 'cm' },
-    flightRun: { length: 274, unit: 'cm' },
-    landingDepth: { length: 110, unit: 'cm' },
-    wellGap: { length: 24, unit: 'cm' },
+    flightWidth: { length: SF.flightWidth, unit: 'cm' },
+    flightRun: { length: SF.flightRun, unit: 'cm' },
+    landingDepth: { length: SF.landingDepth, unit: 'cm' },
+    wellGap: { length: SF.wellGap, unit: 'cm' },
     floorHeight: { length: FLOOR_HEIGHT_CM, unit: 'cm' },
     ponyWallHeight: { length: 110, unit: 'cm' },
   });
@@ -267,10 +277,15 @@ export function baseScene(): Scene {
   up.addHoleAt('h', toY(58), toX(6.0), 'window');              // justin's office rear window
   up.addHoleAt('h', toY(58), toX(17.9), 'window');             // primary bedroom rear window
   up.addHoleAt('v', toX(15.51), toY(40.0), 'door');            // primary bath en-suite door
-  // Open stair well directly above the lower stair.
+  // Interior doors off the upper hallway
+  up.addHoleAt('h', toY(44.42), toX(13.5), 'door');            // hallway -> primary bedroom
+  up.addHoleAt('h', toY(44.42), toX(5.0), 'door');             // hallway -> justin's office
+  up.addHoleAt('v', toX(9.17), toY(23.5), 'door');             // hallway -> jason's office
+  up.addHoleAt('v', toX(9.08), toY(36.75), 'door');            // hallway -> hall bath
+  // Open stair well directly above the lower stair (size derived from it so they stay aligned).
   up.addItem('stair-opening', stairCx, stairCy, 0, {
-    width: { length: 244, unit: 'cm' },
-    depth: { length: 384, unit: 'cm' },
+    width: { length: stairW, unit: 'cm' },
+    depth: { length: stairD, unit: 'cm' },
     ponyWallHeight: { length: 110, unit: 'cm' },
   });
 

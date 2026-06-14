@@ -247,7 +247,11 @@ const FLOOR_MATERIALS: Record<string, { texture: string; patternColor: string }>
 export function resolveFloorMaterial(name: string): { texture: string; patternColor: string } {
   const key = name.trim().toLowerCase();
   if (FLOOR_MATERIALS[key]) return FLOOR_MATERIALS[key];
-  for (const k of Object.keys(FLOOR_MATERIALS)) if (key.includes(k)) return FLOOR_MATERIALS[k];
+  // Longest (most specific) key first so "dark black walnut" matches "black walnut"
+  // / "dark walnut" before the generic "walnut".
+  for (const k of Object.keys(FLOOR_MATERIALS).sort((a, b) => b.length - a.length)) {
+    if (key.includes(k)) return FLOOR_MATERIALS[k];
+  }
   return { texture: 'walnut', patternColor: '#6b4f34' }; // sensible wood fallback
 }
 
