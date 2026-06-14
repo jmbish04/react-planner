@@ -18,7 +18,7 @@ const ITEM_TYPES = [
   'calacatta-viola-countertop', 'calacatta-viola-backsplash', 'walnut-base-cabinet',
   'track-light-black', 'wall-sconce', 'closet-stacked',
   // Circulation
-  'switchback-stair', 'stair-opening',
+  'switchback-stair', 'stair-opening', 'straight-stair',
 ] as const;
 
 const text = (t: string) => ({ content: [{ type: 'text' as const, text: t }] });

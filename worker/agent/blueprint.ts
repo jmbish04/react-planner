@@ -22,7 +22,7 @@ const CATALOG = {
     // Remodel components
     'calacatta-viola-countertop', 'calacatta-viola-backsplash', 'walnut-base-cabinet', 'track-light-black', 'wall-sconce', 'closet-stacked',
     // Circulation
-    'switchback-stair', 'stair-opening'],
+    'switchback-stair', 'stair-opening', 'straight-stair'],
   areas: ['area'],
   floorMaterials: ['walnut', 'oak', 'parquet', 'tile1', 'ceramic', 'strand_porcelain', 'grass', 'none'],
 };
