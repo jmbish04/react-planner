@@ -7,8 +7,11 @@ import {
   ThreadPrimitive,
   MessagePrimitive,
   ComposerPrimitive,
+  useMessagePartText,
 } from '@assistant-ui/react';
 import { useAISDKRuntime } from '@assistant-ui/react-ai-sdk';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { onPlannerReady, applyScene, subscribeSceneChange, type Scene } from './planner';
 import { DebugPanel } from './components/DebugPanel';
 import { FloorplanUpload, type FloorLevel } from './components/FloorplanUpload';
@@ -217,10 +220,28 @@ function UserMessage() {
   );
 }
 
+// Render assistant text as real markdown (bold, lists, headings, code, links)
+// instead of leaking raw "**markup**" into the chat bubble.
+function MarkdownText() {
+  const part = useMessagePartText() as { text?: string };
+  return (
+    <div className="sa-markdown">
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+        }}
+      >
+        {part?.text ?? ''}
+      </Markdown>
+    </div>
+  );
+}
+
 function AssistantMessage() {
   return (
     <MessagePrimitive.Root className="sa-msg sa-msg--assistant">
-      <MessagePrimitive.Parts components={{ tools: { Fallback: ToolFallback } }} />
+      <MessagePrimitive.Parts components={{ Text: MarkdownText, tools: { Fallback: ToolFallback } }} />
     </MessagePrimitive.Root>
   );
 }
