@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { McpAgent } from 'agents/mcp';
 import { getAgentByName } from 'agents';
 import { z } from 'zod';
-import { addRoom, addWall, addHole, addItem, removeElement, addLayer, renameLayer, emptyScene, summarize, type Scene } from '../blueprint/scene';
+import { addRoom, addWall, addHole, addItem, removeElement, addLayer, renameLayer, setAreaFloor, emptyScene, summarize, type Scene } from '../blueprint/scene';
 
 const HOLE_TYPES = [
   'door', 'double door', 'sliding door', 'panic door', 'double panic door',
@@ -17,6 +17,8 @@ const ITEM_TYPES = [
   // Remodel components (this home's finishes)
   'calacatta-viola-countertop', 'calacatta-viola-backsplash', 'walnut-base-cabinet',
   'track-light-black', 'wall-sconce', 'closet-stacked',
+  // Circulation
+  'switchback-stair', 'stair-opening',
 ] as const;
 
 const text = (t: string) => ({ content: [{ type: 'text' as const, text: t }] });
@@ -125,6 +127,19 @@ export class BlueprintMCP extends McpAgent<Env> {
       async ({ name, layerId }) => {
         await this.push(renameLayer(await this.scene(), { name, layerId }));
         return text(`Renamed layer to "${name}".`);
+      }
+    );
+
+    this.server.registerTool(
+      'set_floor',
+      {
+        description: 'Set the floor material of named room(s). material e.g. "dark walnut", "white oak", "tile". Scope by room name (area) or level "upper"/"lower"/"all".',
+        inputSchema: { material: z.string(), area: z.string().optional(), level: z.enum(['upper', 'lower', 'all']).optional() },
+      },
+      async ({ material, area, level }) => {
+        const { scene, changed } = setAreaFloor(await this.scene(), { material, area, level });
+        await this.push(scene);
+        return text(changed.length ? `Set ${material} floor on: ${changed.join(', ')}.` : 'No matching rooms.');
       }
     );
 

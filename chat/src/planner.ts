@@ -1,5 +1,5 @@
 // Typed accessor to the blueprint bus exposed by the React-16 canvas app
-// (see ../../src/index.js -> window.__planner).
+// (see ../app/index.js -> window.__planner).
 
 export type Scene = Record<string, unknown>;
 

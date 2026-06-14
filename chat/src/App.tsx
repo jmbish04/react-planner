@@ -87,6 +87,11 @@ export default function App() {
     }
   }
 
+  async function onNewFromBase() {
+    await agent.stub.saveCurrentVersion(`Snapshot ${new Date().toLocaleString()}`).catch(() => {});
+    await agent.stub.loadBaseProject();
+  }
+
   async function onRestore(id: string) {
     await agent.stub.restore(id);
     setShowHistory(false);
@@ -142,6 +147,11 @@ export default function App() {
               onClick={() => { setShowHistory((v) => !v); if (!showHistory) refreshVersions(); }}
               title="Version history"
             >History</button>
+            <button
+              className="sa-btn"
+              onClick={onNewFromBase}
+              title="Load the Core Base floorplan (snapshots current first)"
+            >Core Base</button>
             <button
               className="sa-btn"
               onClick={() => setShowUpload((v) => !v)}

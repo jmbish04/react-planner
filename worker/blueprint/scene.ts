@@ -159,7 +159,7 @@ const HOLE_DEFAULTS: Record<string, { width: number; height: number; altitude: n
   'venetian-blind-window': { width: 90, height: 100, altitude: 90, thickness: 10 },
 };
 
-function holeProperties(type: string, overrides?: Record<string, unknown>): Record<string, unknown> {
+export function holeProperties(type: string, overrides?: Record<string, unknown>): Record<string, unknown> {
   const d = HOLE_DEFAULTS[type] || HOLE_DEFAULTS['door'];
   return {
     width: { length: d.width },
@@ -228,20 +228,84 @@ export function removeElement(scene: Scene, args: { id: string; layerId?: string
   return next;
 }
 
+// Named-room (area) floor materials. 2D shows patternColor; 3D uses texture.
+const FLOOR_MATERIALS: Record<string, { texture: string; patternColor: string }> = {
+  'walnut': { texture: 'walnut', patternColor: '#3a2a1d' },
+  'dark walnut': { texture: 'walnut', patternColor: '#2e2016' },
+  'black walnut': { texture: 'walnut', patternColor: '#241a12' },
+  'oak': { texture: 'oak', patternColor: '#c8a877' },
+  'light oak': { texture: 'oak', patternColor: '#d8c39a' },
+  'hardwood': { texture: 'walnut', patternColor: '#6b4f34' },
+  'parquet': { texture: 'parquet', patternColor: '#b58b56' },
+  'tile': { texture: 'tile1', patternColor: '#dfe3e6' },
+  'ceramic': { texture: 'ceramic', patternColor: '#e4e0d8' },
+  'porcelain': { texture: 'strand_porcelain', patternColor: '#cfcabd' },
+  'grass': { texture: 'grass', patternColor: '#9bbf6a' },
+  'none': { texture: 'none', patternColor: '#F5F4F4' },
+};
+
+export function resolveFloorMaterial(name: string): { texture: string; patternColor: string } {
+  const key = name.trim().toLowerCase();
+  if (FLOOR_MATERIALS[key]) return FLOOR_MATERIALS[key];
+  for (const k of Object.keys(FLOOR_MATERIALS)) if (key.includes(k)) return FLOOR_MATERIALS[k];
+  return { texture: 'walnut', patternColor: '#6b4f34' }; // sensible wood fallback
+}
+
+/**
+ * Set the floor material of named-room area(s). Match by area id, room name
+ * (case-insensitive substring), or a whole level/layer ('upper'/'lower'/'all').
+ */
+export function setAreaFloor(
+  scene: Scene,
+  args: { material: string; area?: string; level?: 'upper' | 'lower' | 'all' }
+): { scene: Scene; changed: string[] } {
+  const next = clone(scene);
+  const mat = resolveFloorMaterial(args.material);
+  const changed: string[] = [];
+  const wantLevel = args.level && args.level !== 'all'
+    ? (args.level === 'upper' ? 'upper_level' : 'lower_level')
+    : null;
+  const q = (args.area || '').trim().toLowerCase();
+  for (const layer of Object.values(next.layers)) {
+    if (wantLevel && layer.id !== wantLevel) continue;
+    for (const [aid, raw] of Object.entries(layer.areas)) {
+      const a = raw as { id: string; name?: string; properties?: Record<string, unknown> };
+      const match = args.area
+        ? (aid === args.area || a.id === args.area || (a.name || '').toLowerCase().includes(q))
+        : true; // no area filter -> all areas (optionally on the chosen level)
+      if (!match) continue;
+      a.properties = { ...(a.properties || {}), texture: mat.texture, patternColor: mat.patternColor };
+      changed.push(a.name || a.id);
+    }
+  }
+  return { scene: next, changed };
+}
+
 /** Compact textual summary of a scene for the model to reason over without huge JSON. */
 export function summarize(scene: Scene): string {
   const lines: string[] = [`unit=${scene.unit} canvas=${scene.width}x${scene.height}`];
+  const ctx = (scene.meta && (scene.meta as Record<string, unknown>).roomContext) as string | undefined;
+  if (ctx) lines.push('', ctx, '');
   for (const layer of Object.values(scene.layers)) {
     const walls = Object.values(layer.lines);
     const holes = Object.values(layer.holes);
     const items = Object.values(layer.items);
-    lines.push(`layer "${layer.name}" (${layer.id}): ${walls.length} walls, ${holes.length} holes, ${items.length} items`);
+    const areas = Object.values(layer.areas) as { id: string; name?: string; vertices?: string[]; properties?: Record<string, any> }[];
+    lines.push(`layer "${layer.name}" (${layer.id}) altitude=${layer.altitude}: ${areas.length} rooms, ${walls.length} walls, ${holes.length} holes, ${items.length} items`);
+    for (const a of areas) {
+      // bbox from referenced vertices
+      const vs = (a.vertices || []).map((v) => layer.vertices[v]).filter(Boolean);
+      const xs = vs.map((v) => v.x), ys = vs.map((v) => v.y);
+      const bbox = xs.length ? `${Math.min(...xs)},${Math.min(...ys)}–${Math.max(...xs)},${Math.max(...ys)}` : '?';
+      const floor = a.properties && a.properties.texture && a.properties.texture !== 'none' ? ` floor=${a.properties.texture}` : '';
+      lines.push(`  room "${a.name || a.id}" [${a.id}]: bbox ${bbox} cm${floor}`);
+    }
     for (const w of walls) {
       const a = layer.vertices[w.vertices[0]];
       const b = layer.vertices[w.vertices[1]];
       lines.push(`  wall ${w.id}: (${a?.x},${a?.y})->(${b?.x},${b?.y})${w.holes.length ? ` holes=[${w.holes.join(',')}]` : ''}`);
     }
-    for (const h of holes) lines.push(`  hole ${h.id}: ${h.type} on ${h.line} @${h.offset}`);
+    for (const h of holes) lines.push(`  hole ${h.id}: ${h.type} on ${h.line} @${h.offset.toFixed(2)}`);
     for (const it of items) lines.push(`  item ${it.id}: ${it.type} at (${it.x},${it.y}) rot=${it.rotation}`);
   }
   return lines.join('\n');

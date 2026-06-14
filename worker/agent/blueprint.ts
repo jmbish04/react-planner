@@ -4,8 +4,9 @@ import { streamText, convertToModelMessages, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
 import { createModel } from '../ai/anthropic';
 import {
-  emptyScene, addRoom, addWall, addHole, addItem, removeElement, addLayer, renameLayer, summarize, type Scene,
+  emptyScene, addRoom, addWall, addHole, addItem, removeElement, addLayer, renameLayer, setAreaFloor, summarize, type Scene,
 } from '../blueprint/scene';
+import { baseScene } from '../blueprint/base-scene';
 import { saveVersion, listVersions, getVersion } from '../db/versions';
 
 export interface BlueprintState {
@@ -19,8 +20,11 @@ const CATALOG = {
   holes: ['door', 'double door', 'sliding door', 'panic door', 'double panic door', 'gate', 'window', 'sash window', 'window-curtain', 'venetian-blind-window'],
   items: ['sofa', 'armchairs', 'table', 'desk', 'chairdesk', 'sedia', 'bench', 'bookcase', 'wardrobe', 'fridge', 'kitchen', 'sink', 'tv', 'monitor_pc', 'radiator-old-style', 'conditioner', 'round column', 'square column', 'cube', 'coat-hook', 'hanger', 'trash', 'image', 'text',
     // Remodel components
-    'calacatta-viola-countertop', 'calacatta-viola-backsplash', 'walnut-base-cabinet', 'track-light-black', 'wall-sconce', 'closet-stacked'],
+    'calacatta-viola-countertop', 'calacatta-viola-backsplash', 'walnut-base-cabinet', 'track-light-black', 'wall-sconce', 'closet-stacked',
+    // Circulation
+    'switchback-stair', 'stair-opening'],
   areas: ['area'],
+  floorMaterials: ['walnut', 'oak', 'parquet', 'tile1', 'ceramic', 'strand_porcelain', 'grass', 'none'],
 };
 
 function systemPrompt(scene: Scene): string {
@@ -43,6 +47,11 @@ REMODEL COMPONENTS (this home's finishes)
 - track-light-black: black recessed ceiling track lighting (mood lighting).
 - wall-sconce: decorative wall sconce (warm accent light, mounts ~180cm up a wall).
 - closet-stacked: floor-to-ceiling stacked closet boxes (doubled hanging space).
+- switchback-stair: U-shaped switchback staircase (lower level). stair-opening: the matching open well + pony-wall railing on the upper level.
+
+RESOLVING ROOMS & THIS HOME
+- The blueprint below may include a ROOM CONTEXT block (the Core Base — this user's two-level SF row house) listing each named room with its layer, cm bounding box, and relative position. ALWAYS use it to resolve natural-language references: "the back right bedroom" = the rear-right room (Primary Bedroom upstairs), "upstairs" = layer upper_level, "downstairs" = lower_level. Pick the room whose bbox + position match; if ambiguous, ask.
+- To change FLOORING use set_floor (e.g. "engineered hardwood upstairs in dark walnut" -> set_floor material:"dark walnut", level:"upper"). To furnish a room (e.g. "make the back right bedroom a walk-in closet with wardrobes on all walls and a bench island"), place closet-stacked/wardrobe items along the room's interior walls and a bench/table item at the room center, sized to the room's bbox.
 
 WORKFLOW
 1. Establish exterior walls first (use new_room for a rectangular footprint, or add_wall for custom shapes).
@@ -67,7 +76,7 @@ ${summarize(scene)}`;
 
 export class BlueprintAgent extends AIChatAgent<Env, BlueprintState> {
   initialState: BlueprintState = {
-    scene: emptyScene(),
+    scene: baseScene(), // fresh instances start on the Core Base floorplan
     projectId: 'default',
     currentVersionId: null,
   };
@@ -82,6 +91,20 @@ export class BlueprintAgent extends AIChatAgent<Env, BlueprintState> {
   @callable()
   getScene(): Scene {
     return this.state.scene;
+  }
+
+  // Load the Core Base floorplan (the user's SF row house) onto the canvas.
+  @callable()
+  loadBaseProject() {
+    this.setState({ ...this.state, scene: baseScene(), currentVersionId: null });
+    return { ok: true, summary: 'Loaded the Core Base floorplan.' };
+  }
+
+  // Start from a blank canvas.
+  @callable()
+  loadEmptyProject() {
+    this.setState({ ...this.state, scene: emptyScene(), currentVersionId: null });
+    return { ok: true };
   }
 
   // Push manual canvas edits (human drawing with the mouse) up to the agent's
@@ -231,6 +254,20 @@ export class BlueprintAgent extends AIChatAgent<Env, BlueprintState> {
         execute: async (args) => {
           self.commit(renameLayer(self.state.scene, args));
           return { ok: true, summary: `Renamed layer to "${args.name}".` };
+        },
+      }),
+
+      set_floor: tool({
+        description: 'Set the FLOOR material of named room(s). material accepts natural names like "dark walnut", "white oak", "hardwood", "tile", "porcelain", "grass". Scope by room name (e.g. "Primary Bedroom"), or by level "upper"/"lower"/"all" (e.g. "show hardwood floors upstairs" -> level:"upper"). Resolve room references using ROOM CONTEXT.',
+        inputSchema: z.object({
+          material: z.string(),
+          area: z.string().optional().describe('Room name or area id; omit to apply to a whole level.'),
+          level: z.enum(['upper', 'lower', 'all']).optional(),
+        }),
+        execute: async (args) => {
+          const { scene, changed } = setAreaFloor(self.state.scene, args);
+          self.commit(scene);
+          return { ok: true, changed, summary: changed.length ? `Set ${args.material} floor on: ${changed.join(', ')}.` : 'No matching rooms found.' };
         },
       }),
 

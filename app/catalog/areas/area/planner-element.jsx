@@ -37,6 +37,18 @@ let textures = {
     uri: require('./textures/grass.jpg'),
     lengthRepeatScale: 0.01,
     heightRepeatScale: 0.01,
+  },
+  walnut: {
+    name: 'Walnut Wide Plank',
+    uri: require('./textures/walnut.jpg'),
+    lengthRepeatScale: 0.0028,
+    heightRepeatScale: 0.0028,
+  },
+  oak: {
+    name: 'White Oak Wide Plank',
+    uri: require('./textures/oak.jpg'),
+    lengthRepeatScale: 0.0028,
+    heightRepeatScale: 0.0028,
   }
 };
 

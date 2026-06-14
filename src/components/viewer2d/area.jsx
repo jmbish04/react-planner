@@ -3,6 +3,16 @@ import PropTypes from 'prop-types';
 import polylabel from 'polylabel';
 import areapolygon from 'area-polygon';
 
+const STYLE_NAME = {
+  textAnchor: 'middle',
+  fontSize: '15px',
+  fontFamily: 'Inter, system-ui, sans-serif',
+  pointerEvents: 'none',
+  fontWeight: 600,
+  fill: '#3a3a3a',
+  WebkitUserSelect: 'none', MozUserSelect: 'none', MsUserSelect: 'none', userSelect: 'none'
+};
+
 const STYLE_TEXT = {
   textAnchor: 'middle',
   fontSize: '12px',
@@ -22,6 +32,24 @@ const STYLE_TEXT = {
 export default function Area({layer, area, catalog}) {
 
   let rendered = catalog.getElement(area.type).render2D(area, layer);
+
+  // Always render the room NAME at the polygon's pole-of-inaccessibility so each
+  // area reads as a named room on the canvas (react-planner doesn't do this by default).
+  let renderedAreaName = null;
+  if (area.name) {
+    let namePolygon = area.vertices.toArray().map(vertexID => {
+      let {x, y} = layer.vertices.get(vertexID);
+      return [x, y];
+    });
+    if (namePolygon.length >= 3) {
+      let nameCenter = polylabel([namePolygon], 1.0);
+      renderedAreaName = (
+        <text x="0" y="0" transform={`translate(${nameCenter[0]} ${nameCenter[1]}) scale(1, -1)`} style={STYLE_NAME}>
+          {area.name}
+        </text>
+      );
+    }
+  }
 
   let renderedAreaSize = null;
 
@@ -57,7 +85,7 @@ export default function Area({layer, area, catalog}) {
     });
 
     renderedAreaSize = (
-      <text x="0" y="0" transform={`translate(${center[0]} ${center[1]}) scale(1, -1)`} style={STYLE_TEXT}>
+      <text x="0" y={area.name ? '-18' : '0'} transform={`translate(${center[0]} ${center[1]}) scale(1, -1)`} style={STYLE_TEXT}>
         {(areaSize / 10000).toFixed(2)} m{String.fromCharCode(0xb2)}
       </text>
     )
@@ -72,6 +100,7 @@ export default function Area({layer, area, catalog}) {
       data-layer={layer.id}
     >
       {rendered}
+      {renderedAreaName}
       {renderedAreaSize}
     </g>
   )
